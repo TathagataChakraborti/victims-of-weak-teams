@@ -1,0 +1,11 @@
+.disabled {
+  cursor: not-allowed;
+}
+
+.no-decoration-enforce {
+  text-decoration: none !important;
+}
+
+.no-decoration-enforce:hover {
+  text-decoration: none !important;
+}

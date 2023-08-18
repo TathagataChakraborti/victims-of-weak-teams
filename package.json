@@ -1,0 +1,70 @@
+{
+  "name": "victims-of-weak-teams",
+  "version": "0.0.0",
+  "repository": "git@github.com:TathagataChakraborti/victims-of-weak-teams.git",
+  "bugs": "https://github.com/TathagataChakraborti/victims-of-weak-teams/issues",
+  "license": "GPL-3.0 license",
+  "scripts": {
+    "build": "react-scripts build",
+    "clean": "yarn cache clean && yarn install",
+    "format": "prettier --write \"**/*.{js,md,scss}\"",
+    "start": "react-scripts startejbdccuulkchlceurcbcftjjvvbknugvdvuhjevefvfk",
+
+    "predeploy": "yarn build",
+    "deploy": "gh-pages -d build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "dependencies": {
+    "@carbon/react": "^1.31.3",
+    "react": "^18.1.0",
+    "react-autosuggest": "^10.0.2",
+    "react-dom": "^18.1.0",
+    "react-router-dom": "^5.0.0",
+    "react-scripts": "^5.0.1",
+    "sass": "^1.51.0"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.7.1",
+    "@commitlint/config-conventional": "^7.5.0",
+    "gh-pages": "^5.0.0",
+    "husky": "^1.3.1",
+    "lint-staged": "^14.0.0",
+    "node-sass": "^9.0.0",
+    "prettier": "^1.17.0"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "lint-staged": {
+    "*.js": [
+      "yarn format:staged",
+      "git add"
+    ],
+    "*.{scss,css}": [
+      "yarn format:staged",
+      "git add"
+    ],
+    "*.md": [
+      "yarn format:staged",
+      "git add"
+    ]
+  },
+  "prettier": {
+    "jsxBracketSameLine": true,
+    "printWidth": 80,
+    "singleQuote": true,
+    "trailingComma": "es5"
+  }
+}
