@@ -1,6 +1,7 @@
 {
   "name": "victims-of-weak-teams",
   "version": "0.0.0",
+  "proxy": "http://localhost:3000/",
   "repository": "git@github.com:TathagataChakraborti/victims-of-weak-teams.git",
   "bugs": "https://github.com/TathagataChakraborti/victims-of-weak-teams/issues",
   "license": "GPL-3.0 license",
