@@ -13,7 +13,6 @@ import {
   TableHeader,
   TableRow,
   TableBody,
-  TableSelectRow,
   TableCell,
   Tile,
   TextInput,
@@ -21,21 +20,13 @@ import {
   Pagination,
 } from '@carbon/react';
 
-async function fetchStaticData() {
-  const requestOptions = {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  };
-
-  const response = await fetch('static_api', requestOptions);
-  return response;
-}
-
 const proxyURL = 'https://cors-proxy.fringe.zone/';
 const static_api = 'https://draft.premierleague.com/api/bootstrap-static';
 
 const headers = [
   { key: 'name', header: 'Name' },
+  { key: 'team', header: 'Team' },
+  { key: 'pos', header: 'POS' },
   { key: 'cr', header: 'CR' },
   { key: 'ir', header: 'IR' },
   { key: 'tr', header: 'TR' },
@@ -49,6 +40,8 @@ class LandingPage extends React.Component {
       league_id: '',
       player_search: '',
       static_data: null,
+      currentPageSize: 10,
+      firstRowIndex: 0,
     };
   }
 
@@ -94,12 +87,14 @@ class LandingPage extends React.Component {
           ir: row.influence_rank,
           tr: row.threat_rank,
           dr: row.draft_rank,
+          team: '',
+          pos: '',
         }));
-    console.log(123, rows);
+
     return (
       <Theme theme="g90" style={{ height: '100vh' }}>
         <Grid>
-          <Column lg={4} md={8} sm={4}>
+          <Column lg={6} md={8} sm={4}>
             <br />
             <br />
             <Tile>
@@ -158,38 +153,46 @@ class LandingPage extends React.Component {
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {rows.map(row => (
-                            <TableRow {...getRowProps({ row })}>
-                              {row.cells.map(cell => (
-                                <TableCell key={cell.id}>
-                                  {cell.value}
-                                </TableCell>
-                              ))}
-                            </TableRow>
-                          ))}
+                          {rows
+                            .slice(
+                              this.state.firstRowIndex,
+                              this.state.firstRowIndex +
+                                this.state.currentPageSize
+                            )
+                            .map(row => (
+                              <TableRow {...getRowProps({ row })}>
+                                {row.cells.map(cell => (
+                                  <TableCell key={cell.id}>
+                                    {cell.value}
+                                  </TableCell>
+                                ))}
+                              </TableRow>
+                            ))}
                         </TableBody>
                       </Table>
                     </TableContainer>
                   )}
                 />
                 <Pagination
-                  totalItems={this.state.static_data.elements}
+                  style={{ width: '100%' }}
+                  totalItems={rows.length}
                   backwardText="Previous page"
                   forwardText="Next page"
-                  pageSize={10}
-                  pageSizes={[5, 10, 15, 25]}
+                  pageSize={this.state.currenPageSize}
+                  pageSizes={[this.state.currentPageSize, 5, 10, 15, 25]}
                   itemsPerPageText="Items per page"
                   onChange={({ page, pageSize }) => {
-                    if (pageSize !== currentPageSize) {
-                      setCurrentPageSize(pageSize);
-                    }
-                    setFirstRowIndex(pageSize * (page - 1));
+                    this.setState({
+                      ...this.state,
+                      currentPageSize: pageSize,
+                      firstRowIndex: pageSize * (page - 1),
+                    });
                   }}
                 />
               </>
             )}
           </Column>
-          <Column lg={12} md={8} sm={4}></Column>
+          <Column lg={10} md={8} sm={4}></Column>
         </Grid>
       </Theme>
     );

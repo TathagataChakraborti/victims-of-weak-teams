@@ -9,8 +9,7 @@
     "build": "react-scripts build",
     "clean": "yarn cache clean && yarn install",
     "format": "prettier --write \"**/*.{js,md,scss}\"",
-    "start": "react-scripts startejbdccuulkchlceurcbcftjjvvbknugvdvuhjevefvfk",
-
+    "start": "react-scripts start",
     "predeploy": "yarn build",
     "deploy": "gh-pages -d build",
     "test": "react-scripts test",
