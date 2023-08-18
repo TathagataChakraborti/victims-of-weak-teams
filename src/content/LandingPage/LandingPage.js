@@ -1,4 +1,5 @@
 import React from 'react';
+import { Bee, Soccer } from '@carbon/icons-react';
 import {
   DataTable,
   Theme,
@@ -8,6 +9,8 @@ import {
   TableToolbar,
   TableToolbarContent,
   TableToolbarSearch,
+  TableToolbarMenu,
+  TableToolbarAction,
   Table,
   TableHead,
   TableHeader,
@@ -24,14 +27,30 @@ const proxyURL = 'https://cors-proxy.fringe.zone/';
 const static_api = 'https://draft.premierleague.com/api/bootstrap-static';
 
 const headers = [
+  { key: 'dr', header: 'DR' },
   { key: 'name', header: 'Name' },
   { key: 'team', header: 'Team' },
   { key: 'pos', header: 'POS' },
   { key: 'cr', header: 'CR' },
   { key: 'ir', header: 'IR' },
   { key: 'tr', header: 'TR' },
-  { key: 'dr', header: 'DR' },
 ];
+
+function getPlayerPosition(element, data) {
+  if (!data) return null;
+
+  const type_element = data.element_types.find(
+    item => item.id === element.element_type
+  );
+  return type_element.singular_name_short;
+}
+
+function getPlayerTeam(element, data) {
+  if (!data) return null;
+
+  const team_element = data.teams.find(item => item.id === element.team);
+  return team_element.short_name;
+}
 
 class LandingPage extends React.Component {
   constructor(props) {
@@ -40,9 +59,28 @@ class LandingPage extends React.Component {
       league_id: '',
       player_search: '',
       static_data: null,
-      currentPageSize: 10,
+      player_list: [],
+      current_type: '',
+      currentPageSize: 15,
       firstRowIndex: 0,
     };
+  }
+
+  filterPlayers(filter_by) {
+    var current_list =
+      filter_by.type === this.state.current_type
+        ? this.state.static_data.elements
+        : this.state.player_list;
+
+    current_list = current_list.filter(
+      item => filter_by.value === 0 || item[filter_by.type] === filter_by.value
+    );
+
+    this.setState({
+      ...this.state,
+      player_list: current_list,
+      current_type: filter_by.type,
+    });
   }
 
   componentDidMount = () => {
@@ -55,41 +93,26 @@ class LandingPage extends React.Component {
     })
       .then(res => res.json())
       .then(data => {
-        console.log(data.elements);
+        console.log(data);
         this.setState({
           ...this.state,
           static_data: data,
+          player_list: data.elements,
         });
       });
   };
 
-  onLeagueIDInputChange = e => {
-    this.setState({
-      ...this.state,
-      league_id: e.target.value,
-    });
-  };
-
-  onTableInputChange = e => {
-    this.setState({
-      ...this.state,
-      player_search: e.target.value,
-    });
-  };
-
   render() {
-    const rows = !this.state.static_data
-      ? []
-      : this.state.static_data.elements.map(row => ({
-          ...row,
-          name: row.first_name + ' ' + row.second_name,
-          cr: row.creativity_rank,
-          ir: row.influence_rank,
-          tr: row.threat_rank,
-          dr: row.draft_rank,
-          team: '',
-          pos: '',
-        }));
+    const rows = this.state.player_list.map(row => ({
+      ...row,
+      name: row.first_name + ' ' + row.second_name,
+      cr: row.creativity_rank,
+      ir: row.influence_rank,
+      tr: row.threat_rank,
+      dr: row.draft_rank,
+      team: getPlayerTeam(row, this.state.static_data),
+      pos: getPlayerPosition(row, this.state.static_data),
+    }));
 
     return (
       <Theme theme="g90" style={{ height: '100vh' }}>
@@ -100,7 +123,12 @@ class LandingPage extends React.Component {
             <Tile>
               <TextInput
                 value={this.state.league_id}
-                onChange={this.onLeagueIDInputChange.bind(this)}
+                onChange={e => {
+                  this.setState({
+                    ...this.state,
+                    league_id: e.target.value,
+                  });
+                }}
                 id="league_id"
                 labelText=""
                 helperText="Enter your League ID here to fetch player data"
@@ -130,18 +158,79 @@ class LandingPage extends React.Component {
                     getHeaderProps,
                     getRowProps,
                     getTableProps,
+                    onInputChange,
                   }) => (
-                    <TableContainer title="Player List">
+                    <TableContainer
+                      title="Player List"
+                      description={
+                        <p style={{ marginTop: '5px' }}>
+                          CR = Creativity Rank, IR = Influence Rank, TR = Threat
+                          Rank, DR = Draft Rank
+                        </p>
+                      }>
                       <TableToolbar>
                         <TableToolbarContent>
                           <TableToolbarSearch
-                            value={this.state.player_search}
-                            onChange={this.onTableInputChange.bind(this)}
+                            placeholder="Search player by name"
+                            onChange={onInputChange}
                           />
+                          <TableToolbarMenu renderIcon={Bee}>
+                            <TableToolbarAction
+                              key="all_teams"
+                              onClick={() => {
+                                this.filterPlayers({ type: 'team', value: 0 });
+                              }}>
+                              All
+                            </TableToolbarAction>
+                            {this.state.static_data.teams.map(item => (
+                              <TableToolbarAction
+                                key={item.short_name}
+                                onClick={e => {
+                                  this.filterPlayers({
+                                    type: 'team',
+                                    value: item.id,
+                                  });
+                                }}>
+                                {item.name}
+                              </TableToolbarAction>
+                            ))}
+                          </TableToolbarMenu>
+                          <TableToolbarMenu renderIcon={Soccer}>
+                            <TableToolbarAction
+                              key="all_positions"
+                              onClick={() => {
+                                this.filterPlayers({
+                                  type: 'element_type',
+                                  value: 0,
+                                });
+                              }}>
+                              All
+                            </TableToolbarAction>
+                            {this.state.static_data.element_types.map(item => (
+                              <TableToolbarAction
+                                key={item.singular_name_short}
+                                onClick={() => {
+                                  this.filterPlayers({
+                                    type: 'element_type',
+                                    value: item.id,
+                                  });
+                                }}>
+                                {item.singular_name}
+                              </TableToolbarAction>
+                            ))}
+                          </TableToolbarMenu>
+                          <Button
+                            kind="secondary"
+                            href={`data:text/json;charset=utf-8,${encodeURIComponent(
+                              JSON.stringify(this.state.static_data, 0, 2)
+                            )}`}
+                            download={'data.json'}>
+                            Export Data
+                          </Button>
                         </TableToolbarContent>
                       </TableToolbar>
-                      <Table {...getTableProps()}>
-                        <TableHead isSortable>
+                      <Table size="sm">
+                        <TableHead>
                           <TableRow>
                             {headers.map(header => (
                               <TableHeader
@@ -179,7 +268,7 @@ class LandingPage extends React.Component {
                   backwardText="Previous page"
                   forwardText="Next page"
                   pageSize={this.state.currenPageSize}
-                  pageSizes={[this.state.currentPageSize, 5, 10, 15, 25]}
+                  pageSizes={[this.state.currentPageSize, 10, 20, 30, 50]}
                   itemsPerPageText="Items per page"
                   onChange={({ page, pageSize }) => {
                     this.setState({
