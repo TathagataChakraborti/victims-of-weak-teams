@@ -1,5 +1,14 @@
 import React from 'react';
-import { Bee, Soccer } from '@carbon/icons-react';
+import { Bee, Soccer, HelpFilled, Add } from '@carbon/icons-react';
+import { TeamTile } from '../../components/BasicElements';
+import {
+  infoTableHeaders,
+  initializeTeam,
+  isAuctionDone,
+  getPlayerPosition,
+  getPlayerTeam,
+} from '../../components/Info';
+
 import {
   DataTable,
   Theme,
@@ -11,6 +20,9 @@ import {
   TableToolbarSearch,
   TableToolbarMenu,
   TableToolbarAction,
+  TableBatchActions,
+  TableBatchAction,
+  TableSelectRow,
   Table,
   TableHead,
   TableHeader,
@@ -23,46 +35,24 @@ import {
   Pagination,
 } from '@carbon/react';
 
+const invalid_league_id_msg = 'Please provide valid league ID';
 const proxyURL = 'https://cors-proxy.fringe.zone/';
 const static_api = 'https://draft.premierleague.com/api/bootstrap-static';
-
-const headers = [
-  { key: 'dr', header: 'DR' },
-  { key: 'name', header: 'Name' },
-  { key: 'team', header: 'Team' },
-  { key: 'pos', header: 'POS' },
-  { key: 'cr', header: 'CR' },
-  { key: 'ir', header: 'IR' },
-  { key: 'tr', header: 'TR' },
-];
-
-function getPlayerPosition(element, data) {
-  if (!data) return null;
-
-  const type_element = data.element_types.find(
-    item => item.id === element.element_type
-  );
-  return type_element.singular_name_short;
-}
-
-function getPlayerTeam(element, data) {
-  if (!data) return null;
-
-  const team_element = data.teams.find(item => item.id === element.team);
-  return team_element.short_name;
-}
+const league_api =
+  'https://draft.premierleague.com/api/league/{league_id}/details';
 
 class LandingPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      league_id: '',
+      league_id: '81463',
       player_search: '',
       static_data: null,
       player_list: [],
       current_type: '',
-      currentPageSize: 15,
+      currentPageSize: 10,
       firstRowIndex: 0,
+      player_map: null,
     };
   }
 
@@ -93,11 +83,45 @@ class LandingPage extends React.Component {
     })
       .then(res => res.json())
       .then(data => {
-        console.log(data);
         this.setState({
           ...this.state,
           static_data: data,
           player_list: data.elements,
+        });
+      });
+  };
+
+  fetchLeagueData = () => {
+    if (!this.state.league_id) {
+      this.setState({
+        ...this.state,
+        error_msg: invalid_league_id_msg,
+      });
+
+      return null;
+    }
+
+    const url = league_api.replace('{league_id}', this.state.league_id);
+    fetch(proxyURL + url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    })
+      .then(res => res.json())
+      .then(data => {
+        var player_map = {};
+        data.league_entries
+          .filter(item => item.entry_name)
+          .forEach(item => {
+            player_map[item.entry_name] = initializeTeam();
+          });
+
+        this.setState({
+          ...this.state,
+          league_data: data,
+          player_map: player_map,
         });
       });
   };
@@ -117,11 +141,12 @@ class LandingPage extends React.Component {
     return (
       <Theme theme="g90" style={{ height: '100vh' }}>
         <Grid>
-          <Column lg={6} md={8} sm={4}>
+          <Column lg={7} md={4} sm={2}>
             <br />
             <br />
             <Tile>
               <TextInput
+                invalid={Boolean(this.state.error_msg)}
                 value={this.state.league_id}
                 onChange={e => {
                   this.setState({
@@ -132,16 +157,33 @@ class LandingPage extends React.Component {
                 id="league_id"
                 labelText=""
                 helperText="Enter your League ID here to fetch player data"
-                invalidText="A valid value is required"
-                placeholder="gbcee2"
+                invalidText={this.state.error_msg}
+                placeholder="81463"
               />
               <br />
-              <Button kind="primary" size="sm" style={{ marginRight: '10px' }}>
+              <Button
+                onClick={this.fetchLeagueData.bind(this)}
+                kind="primary"
+                size="sm"
+                style={{ marginRight: '10px' }}>
                 Fetch
               </Button>
-              <Button kind="tertiary" size="sm">
+              <Button
+                href={'/' + this.state.league_id}
+                kind="tertiary"
+                size="sm"
+                style={{ marginRight: '10px' }}>
                 Go To League
               </Button>
+              <Button
+                hasIconOnly
+                renderIcon={HelpFilled}
+                iconDescription="Help"
+                kind="ghost"
+                size="sm"
+                href="https://allaboutfpl.com/2023/07/what-is-team-id-in-fpl-how-to-get-a-low-fpl-team-id/#:~:text=Login%20to%20your%20FPL%20account,is%20your%20FPL%20team%20ID"
+                target="_blank"
+              />
             </Tile>
 
             <br />
@@ -150,15 +192,19 @@ class LandingPage extends React.Component {
               <>
                 <DataTable
                   rows={rows}
-                  headers={headers}
+                  headers={infoTableHeaders}
                   isSortable={true}
                   render={({
                     rows,
                     headers,
+                    infoTableHeaders,
                     getHeaderProps,
                     getRowProps,
+                    getSelectionProps,
+                    getBatchActionProps,
                     getTableProps,
                     onInputChange,
+                    selectedRows,
                   }) => (
                     <TableContainer
                       title="Player List"
@@ -169,6 +215,19 @@ class LandingPage extends React.Component {
                         </p>
                       }>
                       <TableToolbar>
+                        <TableBatchActions {...getBatchActionProps()}>
+                          <TableBatchAction
+                            tabIndex={
+                              getBatchActionProps().shouldShowBatchActions
+                                ? 0
+                                : -1
+                            }
+                            renderIcon={Add}
+                            onClick={e => console.log('clicked', selectedRows)}>
+                            Add
+                          </TableBatchAction>
+                        </TableBatchActions>
+
                         <TableToolbarContent>
                           <TableToolbarSearch
                             placeholder="Search player by name"
@@ -232,6 +291,7 @@ class LandingPage extends React.Component {
                       <Table size="sm">
                         <TableHead>
                           <TableRow>
+                            <TableHeader></TableHeader>
                             {headers.map(header => (
                               <TableHeader
                                 key={header.key}
@@ -250,6 +310,12 @@ class LandingPage extends React.Component {
                             )
                             .map(row => (
                               <TableRow {...getRowProps({ row })}>
+                                <TableSelectRow
+                                  onChange={e => {
+                                    console.log(this);
+                                  }}
+                                  {...getSelectionProps({ row })}
+                                />
                                 {row.cells.map(cell => (
                                   <TableCell key={cell.id}>
                                     {cell.value}
@@ -281,7 +347,42 @@ class LandingPage extends React.Component {
               </>
             )}
           </Column>
-          <Column lg={10} md={8} sm={4}></Column>
+          <Column lg={9} md={4} sm={2}>
+            <br />
+            <br />
+
+            <Grid>
+              {this.state.league_data && (
+                <>
+                  {this.state.league_data.league_entries
+                    .filter(item => item.entry_name)
+                    .map(item => (
+                      <TeamTile
+                        team_info={item}
+                        team_data={this.state.player_map[item.entry_name]}
+                      />
+                    ))}
+                </>
+              )}
+            </Grid>
+
+            {isAuctionDone(this.state.player_map) && (
+              <>
+                <Button
+                  kind="primary"
+                  size="sm"
+                  href={`data:text/json;charset=utf-8,${encodeURIComponent(
+                    JSON.stringify(this.state, 0, 2)
+                  )}`}
+                  download={'data.json'}>
+                  Save
+                </Button>
+                <br />
+                <br />
+                <br />
+              </>
+            )}
+          </Column>
         </Grid>
       </Theme>
     );

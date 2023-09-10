@@ -1,0 +1,36 @@
+.disabled {
+  cursor: not-allowed;
+}
+
+.no-decoration-enforce {
+  text-decoration: none !important;
+}
+
+.no-decoration-enforce:hover {
+  text-decoration: none !important;
+}
+
+.team-card {
+  margin-bottom: 30px;
+}
+
+.team-tile {
+  padding: 0;
+  min-height: 200px;
+}
+
+.team-tag {
+  min-width: 50px;
+  border-radius: 0;
+  margin: 0;
+}
+
+.team-header {
+  margin: 15px;
+  margin-bottom: 5px;
+}
+
+.player-entry {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
