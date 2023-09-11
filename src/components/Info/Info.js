@@ -31,12 +31,6 @@ const allowedPositions = [
   },
 ];
 
-const selectedItemObject = {
-  name: null,
-  pos: null,
-  value: 0.0,
-};
-
 function computeRemainingMoney(player_map_item) {
   var current_value = 0.0;
 
@@ -54,23 +48,14 @@ function initializeTeam() {
   var team_data = {};
 
   allowedPositions.forEach(item => {
-    var pospos = [];
-    // for(var i=0; i<item.times; i++) {
-    //   var new_object = JSON.parse(JSON.stringify(selectedItemObject));
-    //   new_object.pos = item.name;
-    //   new_object.value = item.times;
-
-    //   pospos.push(new_object)
-    // }
-
-    team_data[item.name] = pospos;
+    team_data[item.name] = [];
   });
 
   return team_data;
 }
 
 function isAuctionDone(player_map) {
-  if (!player_map) return false;
+  if (!Object.keys(player_map).length) return false;
 
   const players_per_team = allowedPositions.reduce(
     (total, item) => total + item.times,
@@ -111,7 +96,6 @@ export {
   generateUrl,
   infoTableHeaders,
   allowedPositions,
-  selectedItemObject,
   computeRemainingMoney,
   initializeTeam,
   isAuctionDone,

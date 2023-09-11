@@ -33,6 +33,8 @@ import {
   TextInput,
   Button,
   Pagination,
+  Dropdown,
+  NumberInput,
 } from '@carbon/react';
 
 const invalid_league_id_msg = 'Please provide valid league ID';
@@ -52,7 +54,9 @@ class LandingPage extends React.Component {
       current_type: '',
       currentPageSize: 10,
       firstRowIndex: 0,
-      player_map: null,
+      selectedTeam: null,
+      current_price: 0,
+      player_map: {},
     };
   }
 
@@ -124,6 +128,33 @@ class LandingPage extends React.Component {
           player_map: player_map,
         });
       });
+  };
+
+  addPlayer = selectedItem => {
+    const position = selectedItem.cells[3].value;
+    const name = selectedItem.cells[1].value;
+    const new_item = {
+      name: name,
+      pos: position,
+      value: parseFloat(this.state.current_price),
+    };
+
+    var player_map = this.state.player_map;
+    var team_data = player_map[this.state.selectedTeam];
+    var positional_info = team_data[position];
+
+    positional_info.push(new_item);
+    team_data[position] = positional_info;
+    player_map[this.state.selectedTeam] = team_data;
+
+    const new_player_list = this.state.player_list.filter(
+      item => name !== item.first_name + ' ' + item.second_name
+    );
+
+    this.setState({
+      ...this.state,
+      player_list: new_player_list,
+    });
   };
 
   render() {
@@ -214,18 +245,66 @@ class LandingPage extends React.Component {
                           Rank, DR = Draft Rank
                         </p>
                       }>
+                      {Object.keys(this.state.player_map).length *
+                        selectedRows.length >
+                        0 && (
+                        <>
+                          <Dropdown
+                            style={{ paddingLeft: '15px' }}
+                            id="select-team"
+                            titleText="Select Team to Add Player"
+                            label="Select Team"
+                            type="inline"
+                            items={Object.keys(this.state.player_map).map(
+                              item => {
+                                return { id: item, text: item };
+                              }
+                            )}
+                            itemToString={item => (item ? item.text : '')}
+                            onChange={e =>
+                              this.setState({
+                                ...this.state,
+                                selectedTeam: e.selectedItem.id,
+                              })
+                            }
+                          />
+                          {this.state.selectedTeam && (
+                            <div
+                              style={{
+                                width: '15px',
+                                display: 'inline-table',
+                              }}>
+                              <NumberInput
+                                style={{ border: 'none' }}
+                                hideSteppers
+                                id="selection-value"
+                                value={this.state.current_price}
+                                onChange={e =>
+                                  this.setState({
+                                    ...this.state,
+                                    current_price: e.target.value,
+                                  })
+                                }
+                                invalidText="Price is not valid"
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
                       <TableToolbar>
                         <TableBatchActions {...getBatchActionProps()}>
-                          <TableBatchAction
-                            tabIndex={
-                              getBatchActionProps().shouldShowBatchActions
-                                ? 0
-                                : -1
-                            }
-                            renderIcon={Add}
-                            onClick={e => console.log('clicked', selectedRows)}>
-                            Add
-                          </TableBatchAction>
+                          {this.state.selectedTeam && (
+                            <TableBatchAction
+                              tabIndex={
+                                getBatchActionProps().shouldShowBatchActions
+                                  ? 0
+                                  : -1
+                              }
+                              renderIcon={Add}
+                              onClick={e => this.addPlayer(selectedRows[0])}>
+                              Add
+                            </TableBatchAction>
+                          )}
                         </TableBatchActions>
 
                         <TableToolbarContent>
@@ -311,10 +390,13 @@ class LandingPage extends React.Component {
                             .map(row => (
                               <TableRow {...getRowProps({ row })}>
                                 <TableSelectRow
-                                  onChange={e => {
-                                    console.log(this);
-                                  }}
                                   {...getSelectionProps({ row })}
+                                  onChange={e =>
+                                    this.setState({
+                                      ...this.state,
+                                      selectedTeam: null,
+                                    })
+                                  }
                                 />
                                 {row.cells.map(cell => (
                                   <TableCell key={cell.id}>

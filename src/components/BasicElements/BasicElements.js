@@ -85,7 +85,24 @@ class TeamTile extends React.Component {
                     }
                     kind="disclosed">
                     {this.state.team_data[position].map(player => (
-                      <ContainedListItem>{player.pos}</ContainedListItem>
+                      <ContainedListItem>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}>
+                          <span>{player.name}</span>
+                          <Tag
+                            className="team-tag"
+                            style={{ backgroundColor: 'black' }}
+                            type="gray"
+                            size="sm"
+                            role="status">
+                            {player.value}
+                          </Tag>
+                        </div>
+                      </ContainedListItem>
                     ))}
                   </ContainedList>
                 </Theme>
