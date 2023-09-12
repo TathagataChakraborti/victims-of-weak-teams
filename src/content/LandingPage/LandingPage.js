@@ -63,6 +63,7 @@ class LandingPage extends React.Component {
       current_price: 0,
       player_map: {},
       error_msg: null,
+      add_error_msg: null,
     };
   }
 
@@ -137,30 +138,46 @@ class LandingPage extends React.Component {
   };
 
   addPlayer = selectedItem => {
-    const position = selectedItem.cells[3].value;
-    const name = selectedItem.cells[1].value;
-    const new_item = {
-      name: name,
-      pos: position,
-      value: parseFloat(this.state.current_price),
-    };
-
-    var player_map = this.state.player_map;
-    var team_data = player_map[this.state.selectedTeam];
-    var positional_info = team_data[position];
-
-    positional_info.push(new_item);
-    team_data[position] = positional_info;
-    player_map[this.state.selectedTeam] = team_data;
-
-    const new_player_list = this.state.player_list.filter(
-      item => name !== makePlayerName(item)
+    const price = parseFloat(this.state.current_price);
+    const remaining_budget = computeRemainingMoney(
+      this.state.player_map[this.state.selectedTeam]
     );
 
-    this.setState({
-      ...this.state,
-      player_list: new_player_list,
-    });
+    if (price > remaining_budget) {
+      this.setState({
+        ...this.state,
+        add_error_msg: 'Could not add player. Price PRICE more than remaining budget REM of TEAM!'
+          .replace('PRICE', price)
+          .replace('REM', remaining_budget)
+          .replace('TEAM', this.state.selectedTeam),
+      });
+    } else {
+      const position = selectedItem.cells[3].value;
+      const name = selectedItem.cells[1].value;
+      const new_item = {
+        name: name,
+        pos: position,
+        value: price,
+      };
+
+      var player_map = this.state.player_map;
+      var team_data = player_map[this.state.selectedTeam];
+      var positional_info = team_data[position];
+
+      positional_info.push(new_item);
+      team_data[position] = positional_info;
+      player_map[this.state.selectedTeam] = team_data;
+
+      const new_player_list = this.state.player_list.filter(
+        item => name !== makePlayerName(item)
+      );
+
+      this.setState({
+        ...this.state,
+        player_list: new_player_list,
+        add_error_msg: '',
+      });
+    }
   };
 
   removePlayer(player_name, team_name) {
@@ -468,12 +485,12 @@ class LandingPage extends React.Component {
             <br />
             <br />
 
-            {this.state.error_msg && (
+            {this.state.add_error_msg && (
               <>
                 <InlineNotification
                   lowContrast
                   title="ERROR"
-                  subtitle={this.state.error_msg}
+                  subtitle={this.state.add_error_msg}
                 />
                 <br />
                 <br />
