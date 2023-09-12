@@ -107,7 +107,9 @@ class TeamTile extends React.Component {
                             iconDescription="Remove from team"
                             hasIconOnly
                           />
-                          <span>{player.name}</span>
+                          <span style={{ fontSize: 'smaller' }}>
+                            {player.name}
+                          </span>
                           <Tag
                             className="team-tag"
                             style={{ backgroundColor: 'black' }}

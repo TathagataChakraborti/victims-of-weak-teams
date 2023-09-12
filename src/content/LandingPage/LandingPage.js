@@ -7,6 +7,7 @@ import {
   isAuctionDone,
   getPlayerPosition,
   getPlayerTeam,
+  computeRemainingMoney,
 } from '../../components/Info';
 
 import {
@@ -35,6 +36,7 @@ import {
   Pagination,
   Dropdown,
   NumberInput,
+  InlineNotification,
 } from '@carbon/react';
 
 const invalid_league_id_msg = 'Please provide valid league ID';
@@ -60,6 +62,7 @@ class LandingPage extends React.Component {
       selectedTeam: null,
       current_price: 0,
       player_map: {},
+      error_msg: null,
     };
   }
 
@@ -298,14 +301,19 @@ class LandingPage extends React.Component {
                           {this.state.selectedTeam && (
                             <div
                               style={{
-                                width: '15px',
                                 display: 'inline-table',
+                                marginBottom: '10px',
                               }}>
                               <NumberInput
                                 style={{ border: 'none' }}
+                                helperText="Price"
                                 hideSteppers
                                 id="selection-value"
                                 value={this.state.current_price}
+                                min={0}
+                                max={computeRemainingMoney(
+                                  this.state.player_map[this.state.selectedTeam]
+                                )}
                                 onChange={e =>
                                   this.setState({
                                     ...this.state,
@@ -459,6 +467,18 @@ class LandingPage extends React.Component {
           <Column lg={9} md={4} sm={2}>
             <br />
             <br />
+
+            {this.state.error_msg && (
+              <>
+                <InlineNotification
+                  lowContrast
+                  title="ERROR"
+                  subtitle={this.state.error_msg}
+                />
+                <br />
+                <br />
+              </>
+            )}
 
             <Grid>
               {this.state.league_data && (
