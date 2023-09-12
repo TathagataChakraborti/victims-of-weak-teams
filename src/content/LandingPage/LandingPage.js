@@ -8,6 +8,7 @@ import {
   getPlayerPosition,
   getPlayerTeam,
   computeRemainingMoney,
+  allowedPositions,
 } from '../../components/Info';
 
 import {
@@ -139,9 +140,13 @@ class LandingPage extends React.Component {
 
   addPlayer = selectedItem => {
     const price = parseFloat(this.state.current_price);
-    const remaining_budget = computeRemainingMoney(
-      this.state.player_map[this.state.selectedTeam]
-    );
+    const position = selectedItem.cells[3].value;
+
+    var player_map = this.state.player_map;
+    var team_data = player_map[this.state.selectedTeam];
+    var positional_info = team_data[position];
+
+    const remaining_budget = computeRemainingMoney(team_data);
 
     if (price > remaining_budget) {
       this.setState({
@@ -151,18 +156,23 @@ class LandingPage extends React.Component {
           .replace('REM', remaining_budget)
           .replace('TEAM', this.state.selectedTeam),
       });
+    } else if (
+      team_data[position].length ==
+      allowedPositions.find(item => item.name === position).times
+    ) {
+      this.setState({
+        ...this.state,
+        add_error_msg: 'Position POS already full for team TEAM!'
+          .replace('POS', position)
+          .replace('TEAM', this.state.selectedTeam),
+      });
     } else {
-      const position = selectedItem.cells[3].value;
       const name = selectedItem.cells[1].value;
       const new_item = {
         name: name,
         pos: position,
         value: price,
       };
-
-      var player_map = this.state.player_map;
-      var team_data = player_map[this.state.selectedTeam];
-      var positional_info = team_data[position];
 
       positional_info.push(new_item);
       team_data[position] = positional_info;
@@ -486,15 +496,12 @@ class LandingPage extends React.Component {
             <br />
 
             {this.state.add_error_msg && (
-              <>
-                <InlineNotification
-                  lowContrast
-                  title="ERROR"
-                  subtitle={this.state.add_error_msg}
-                />
-                <br />
-                <br />
-              </>
+              <InlineNotification
+                style={{ marginBottom: '20px' }}
+                lowContrast
+                title="ERROR"
+                subtitle={this.state.add_error_msg}
+              />
             )}
 
             <Grid>
