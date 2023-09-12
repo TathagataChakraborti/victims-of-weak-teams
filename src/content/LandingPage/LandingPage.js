@@ -43,6 +43,9 @@ const static_api = 'https://draft.premierleague.com/api/bootstrap-static';
 const league_api =
   'https://draft.premierleague.com/api/league/{league_id}/details';
 
+const makePlayerName = player_object =>
+  player_object.first_name + ' ' + player_object.second_name;
+
 class LandingPage extends React.Component {
   constructor(props) {
     super(props);
@@ -148,7 +151,7 @@ class LandingPage extends React.Component {
     player_map[this.state.selectedTeam] = team_data;
 
     const new_player_list = this.state.player_list.filter(
-      item => name !== item.first_name + ' ' + item.second_name
+      item => name !== makePlayerName(item)
     );
 
     this.setState({
@@ -157,10 +160,34 @@ class LandingPage extends React.Component {
     });
   };
 
+  removePlayer(player_name, team_name) {
+    var player_map = this.state.player_map;
+    var team_data = player_map[team_name];
+
+    Object.keys(team_data).forEach(position => {
+      team_data[position] = team_data[position].filter(
+        item => item.name !== player_name
+      );
+    });
+
+    const cached_item = this.state.static_data.elements.find(
+      item => makePlayerName(item) === player_name
+    );
+    var new_player_list = this.state.player_list;
+    new_player_list.push(cached_item);
+
+    this.setState({
+      ...this.state,
+      player_map: player_map,
+      player_list: new_player_list,
+    });
+  }
+
   render() {
     const rows = this.state.player_list.map(row => ({
       ...row,
-      name: row.first_name + ' ' + row.second_name,
+      id: row.id.toString(),
+      name: makePlayerName(row),
       cr: row.creativity_rank,
       ir: row.influence_rank,
       tr: row.threat_rank,
@@ -416,7 +443,7 @@ class LandingPage extends React.Component {
                   backwardText="Previous page"
                   forwardText="Next page"
                   pageSize={this.state.currenPageSize}
-                  pageSizes={[this.state.currentPageSize, 10, 20, 30, 50]}
+                  pageSizes={[this.state.currentPageSize, 20, 30, 50]}
                   itemsPerPageText="Items per page"
                   onChange={({ page, pageSize }) => {
                     this.setState({
@@ -438,10 +465,12 @@ class LandingPage extends React.Component {
                 <>
                   {this.state.league_data.league_entries
                     .filter(item => item.entry_name)
-                    .map(item => (
+                    .map((item, id) => (
                       <TeamTile
+                        key={id}
                         team_info={item}
                         team_data={this.state.player_map[item.entry_name]}
+                        removePlayer={this.removePlayer.bind(this)}
                       />
                     ))}
                 </>

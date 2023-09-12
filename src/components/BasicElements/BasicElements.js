@@ -1,5 +1,6 @@
 import React from 'react';
 import { allowedPositions, computeRemainingMoney } from '../../components/Info';
+import { Subtract } from '@carbon/icons-react';
 import {
   Column,
   Theme,
@@ -7,6 +8,7 @@ import {
   Tag,
   ContainedList,
   ContainedListItem,
+  Button,
 } from '@carbon/react';
 
 class TeamTile extends React.Component {
@@ -17,6 +19,10 @@ class TeamTile extends React.Component {
       team_data: props.team_data,
     };
   }
+
+  removePlayer = player_name => {
+    this.props.removePlayer(player_name, this.state.team_info.entry_name);
+  };
 
   render() {
     return (
@@ -53,9 +59,9 @@ class TeamTile extends React.Component {
                 kind="disclosed"></ContainedList>
             </div>
 
-            {Object.keys(this.state.team_data).map(position => {
+            {Object.keys(this.state.team_data).map((position, id) => {
               return (
-                <Theme theme="g100">
+                <Theme key={id} theme="g100">
                   <ContainedList
                     size="sm"
                     label={
@@ -92,6 +98,15 @@ class TeamTile extends React.Component {
                             alignItems: 'center',
                             justifyContent: 'space-between',
                           }}>
+                          <Button
+                            onClick={this.removePlayer.bind(this, player.name)}
+                            style={{ marginRight: '5px' }}
+                            renderIcon={Subtract}
+                            kind="ghost"
+                            size="sm"
+                            iconDescription="Remove from team"
+                            hasIconOnly
+                          />
                           <span>{player.name}</span>
                           <Tag
                             className="team-tag"
