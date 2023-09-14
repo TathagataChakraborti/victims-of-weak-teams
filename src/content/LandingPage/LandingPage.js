@@ -53,7 +53,7 @@ class LandingPage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      league_id: '81463',
+      league_id: '',
       player_search: '',
       static_data: null,
       player_list: [],
@@ -246,7 +246,7 @@ class LandingPage extends React.Component {
                 labelText=""
                 helperText="Enter your League ID here to fetch player data"
                 invalidText={this.state.error_msg}
-                placeholder="81463"
+                placeholder="Enter League ID e.g. 81463"
               />
               <br />
               <Button
@@ -457,6 +457,7 @@ class LandingPage extends React.Component {
                                     this.setState({
                                       ...this.state,
                                       selectedTeam: null,
+                                      current_price: 0,
                                     })
                                   }
                                 />
@@ -527,7 +528,15 @@ class LandingPage extends React.Component {
                   kind="primary"
                   size="sm"
                   href={`data:text/json;charset=utf-8,${encodeURIComponent(
-                    JSON.stringify(this.state, 0, 2)
+                    JSON.stringify(
+                      {
+                        league_id: this.state.league_id,
+                        static_data: this.state.static_data,
+                        player_map: this.state.player_map,
+                      },
+                      0,
+                      2
+                    )
                   )}`}
                   download={'data.json'}>
                   Save
