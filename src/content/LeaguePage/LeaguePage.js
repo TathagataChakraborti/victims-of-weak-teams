@@ -17,11 +17,51 @@ import {
 
 const config = require('../../config.json');
 const leaderboardHeaders = [
-  { key: 'Name', header: 'Name' },
-  { key: 'H2H', header: 'H2H' },
-  { key: 'GW', header: 'GW' },
-  { key: 'Points', header: 'Points' },
+  { key: 'move', header: '' },
+  { key: 'name', header: 'Name' },
+  { key: 'gw', header: 'GW' },
+  { key: 'h2h', header: 'H2H' },
+  { key: 'gw_points', header: 'GW Points' },
+  { key: 'total_points', header: 'Total Points' },
 ];
+
+// const getCurrentPosition = (id, league_data) => {};
+// const getPreviousPosition = (id, league_data) => {};
+
+const getPointsArrayFromID = (id, league_data) => {
+  var points_array = [];
+
+  league_data.matches.forEach(item => {
+    if (item.started) {
+      var points = null;
+
+      if (item.league_entry_1 === id) {
+        points = item.league_entry_1_points;
+      } else if (item.league_entry_2 === id) {
+        points = item.league_entry_2_points;
+      }
+
+      if (points)
+        points_array.push({
+          gameweek: item.event + 1,
+          points: points,
+        });
+    }
+  });
+
+  return points_array;
+};
+
+const getTotalPoints = (id, league_data) =>
+  getPointsArrayFromID(id, league_data).reduce(
+    (total, item) => total + item.points,
+    0
+  );
+
+const getGameweekPoints = (id, league_data) => {
+  const points_array = getPointsArrayFromID(id, league_data);
+  return points_array.length ? points_array[points_array.length - 1].points : 0;
+};
 
 const getTeamNameFromID = (id, league_data) =>
   league_data.league_entries.find(item => id === item.id).entry_name;
@@ -105,7 +145,8 @@ class LeaguePage extends React.Component {
       : this.state.league_data.standings.map(row => ({
           ...row,
           id: row.league_entry,
-          Name: (
+          move: <></>,
+          name: (
             <div style={{ paddingTop: '10px', paddingBottom: '10px' }}>
               <div>
                 {getTeamNameFromID(row.league_entry, this.state.league_data)}
@@ -120,9 +161,17 @@ class LeaguePage extends React.Component {
               </div>
             </div>
           ),
-          H2H: row.total,
-          GW: 'GW',
-          Points: row.points_for,
+          gw: getPointsArrayFromID(row.league_entry, this.state.league_data)
+            .length,
+          h2h: row.total,
+          gw_points: getGameweekPoints(
+            row.league_entry,
+            this.state.league_data
+          ),
+          total_points: getTotalPoints(
+            row.league_entry,
+            this.state.league_data
+          ),
         }));
 
     rows = rows.filter(item =>
