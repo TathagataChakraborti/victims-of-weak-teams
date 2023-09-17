@@ -252,7 +252,7 @@ class LandingPage extends React.Component {
                 helperText="Enter your League ID here to fetch player data"
                 invalidText={this.state.error_msg}
                 placeholder={
-                  'Enter League ID e.g. ' + config['default_leauge_id']
+                  'Enter League ID e.g. ' + config['default_league_id']
                 }
               />
               <br />
@@ -300,7 +300,6 @@ class LandingPage extends React.Component {
                   render={({
                     rows,
                     headers,
-                    infoTableHeaders,
                     getHeaderProps,
                     getRowProps,
                     getSelectionProps,

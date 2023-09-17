@@ -1,5 +1,5 @@
 {
-  "default_leauge_id": "81463",
+  "default_league_id": "81463",
   "proxy_url": "https://cors-proxy.fringe.zone/",
   "static_api": "https://draft.premierleague.com/api/bootstrap-static",
   "league_api": "https://draft.premierleague.com/api/league/LEAGUE_ID/details",
