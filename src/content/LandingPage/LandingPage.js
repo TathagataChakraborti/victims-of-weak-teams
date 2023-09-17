@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link as NewLink } from 'react-router-dom';
 import { Bee, Soccer, HelpFilled, Add } from '@carbon/icons-react';
 import { TeamTile } from '../../components/BasicElements';
 import {
@@ -68,23 +69,6 @@ class LandingPage extends React.Component {
     };
   }
 
-  filterPlayers(filter_by) {
-    var current_list =
-      filter_by.type === this.state.current_type
-        ? this.state.static_data.elements
-        : this.state.player_list;
-
-    current_list = current_list.filter(
-      item => filter_by.value === 0 || item[filter_by.type] === filter_by.value
-    );
-
-    this.setState({
-      ...this.state,
-      player_list: current_list,
-      current_type: filter_by.type,
-    });
-  }
-
   componentDidMount = () => {
     fetch(proxyURL + static_api, {
       method: 'GET',
@@ -102,6 +86,23 @@ class LandingPage extends React.Component {
         });
       });
   };
+
+  filterPlayers(filter_by) {
+    var current_list =
+      filter_by.type === this.state.current_type
+        ? this.state.static_data.elements
+        : this.state.player_list;
+
+    current_list = current_list.filter(
+      item => filter_by.value === 0 || item[filter_by.type] === filter_by.value
+    );
+
+    this.setState({
+      ...this.state,
+      player_list: current_list,
+      current_type: filter_by.type,
+    });
+  }
 
   fetchLeagueData = () => {
     if (!this.state.league_id) {
@@ -157,7 +158,7 @@ class LandingPage extends React.Component {
           .replace('TEAM', this.state.selectedTeam),
       });
     } else if (
-      team_data[position].length ==
+      team_data[position].length ===
       allowedPositions.find(item => item.name === position).times
     ) {
       this.setState({
@@ -256,13 +257,21 @@ class LandingPage extends React.Component {
                 style={{ marginRight: '10px' }}>
                 Fetch
               </Button>
-              <Button
-                href={'/' + this.state.league_id}
-                kind="tertiary"
-                size="sm"
-                style={{ marginRight: '10px' }}>
-                Go To League
-              </Button>
+
+              <NewLink
+                to={{
+                  pathname: '/leaderboard',
+                  state: { id: this.state.league_id },
+                }}
+                className="no-decoration-enforce">
+                <Button
+                  kind="tertiary"
+                  size="sm"
+                  style={{ marginRight: '10px' }}>
+                  Go To League
+                </Button>
+              </NewLink>
+
               <Button
                 hasIconOnly
                 renderIcon={HelpFilled}
