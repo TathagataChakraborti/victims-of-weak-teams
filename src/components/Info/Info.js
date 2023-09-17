@@ -1,35 +1,8 @@
-const generateUrl = url => {
+const config = require('../../config.json');
+
+function generateUrl(url) {
   return `${process.env.PUBLIC_URL}/${url}.png`;
-};
-
-const infoTableHeaders = [
-  { key: 'dr', header: 'DR' },
-  { key: 'name', header: 'Name' },
-  { key: 'team', header: 'Team' },
-  { key: 'pos', header: 'POS' },
-  { key: 'cr', header: 'CR' },
-  { key: 'ir', header: 'IR' },
-  { key: 'tr', header: 'TR' },
-];
-
-const allowedPositions = [
-  {
-    name: 'GKP',
-    times: 2,
-  },
-  {
-    name: 'DEF',
-    times: 5,
-  },
-  {
-    name: 'MID',
-    times: 5,
-  },
-  {
-    name: 'FWD',
-    times: 3,
-  },
-];
+}
 
 function computeRemainingMoney(player_map_item) {
   var current_value = 0.0;
@@ -41,13 +14,13 @@ function computeRemainingMoney(player_map_item) {
     );
   });
 
-  return 100.0 - current_value;
+  return config['total_budget'] - current_value;
 }
 
 function initializeTeam() {
   var team_data = {};
 
-  allowedPositions.forEach(item => {
+  config['allowed_positions'].forEach(item => {
     team_data[item.name] = [];
   });
 
@@ -57,7 +30,7 @@ function initializeTeam() {
 function isAuctionDone(player_map) {
   if (!Object.keys(player_map).length) return false;
 
-  const players_per_team = allowedPositions.reduce(
+  const players_per_team = config['allowed_positions'].reduce(
     (total, item) => total + item.times,
     0
   );
@@ -94,8 +67,6 @@ function getPlayerTeam(element, data) {
 
 export {
   generateUrl,
-  infoTableHeaders,
-  allowedPositions,
   computeRemainingMoney,
   initializeTeam,
   isAuctionDone,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { allowedPositions, computeRemainingMoney } from '../../components/Info';
+import { computeRemainingMoney } from '../../components/Info';
 import { Subtract } from '@carbon/icons-react';
 import {
   Column,
@@ -10,6 +10,8 @@ import {
   ContainedListItem,
   Button,
 } from '@carbon/react';
+
+const config = require('../../config.json');
 
 class TeamTile extends React.Component {
   constructor(props) {
@@ -82,7 +84,7 @@ class TeamTile extends React.Component {
                           }>
                           {this.state.team_data[position].length} /{' '}
                           {
-                            allowedPositions.find(
+                            config['allowed_positions'].find(
                               item => item.name === position
                             ).times
                           }

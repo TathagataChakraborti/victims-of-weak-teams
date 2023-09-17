@@ -1,0 +1,26 @@
+{
+  "default_leauge_id": "81463",
+  "proxy_url": "https://cors-proxy.fringe.zone/",
+  "static_api": "https://draft.premierleague.com/api/bootstrap-static",
+  "league_api": "https://draft.premierleague.com/api/league/LEAGUE_ID/details",
+  "total_budget": 100,
+  "minimum_price": 0,
+  "allowed_positions": [
+    {
+      "name": "GKP",
+      "times": 2
+    },
+    {
+      "name": "DEF",
+      "times": 5
+    },
+    {
+      "name": "MID",
+      "times": 5
+    },
+    {
+      "name": "FWD",
+      "times": 3
+    }
+  ]
+}

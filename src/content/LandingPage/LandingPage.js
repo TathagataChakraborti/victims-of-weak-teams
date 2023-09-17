@@ -3,13 +3,11 @@ import { Link as NewLink } from 'react-router-dom';
 import { Bee, Soccer, HelpFilled, Add } from '@carbon/icons-react';
 import { TeamTile } from '../../components/BasicElements';
 import {
-  infoTableHeaders,
   initializeTeam,
   isAuctionDone,
   getPlayerPosition,
   getPlayerTeam,
   computeRemainingMoney,
-  allowedPositions,
 } from '../../components/Info';
 
 import {
@@ -41,12 +39,18 @@ import {
   InlineNotification,
 } from '@carbon/react';
 
-const invalid_league_id_msg = 'Please provide valid league ID';
-const proxyURL = 'https://cors-proxy.fringe.zone/';
-const static_api = 'https://draft.premierleague.com/api/bootstrap-static';
-const league_api =
-  'https://draft.premierleague.com/api/league/{league_id}/details';
+const config = require('../../config.json');
+const infoTableHeaders = [
+  { key: 'dr', header: 'DR' },
+  { key: 'name', header: 'Name' },
+  { key: 'team', header: 'Team' },
+  { key: 'pos', header: 'POS' },
+  { key: 'cr', header: 'CR' },
+  { key: 'ir', header: 'IR' },
+  { key: 'tr', header: 'TR' },
+];
 
+const invalid_league_id_msg = 'Please provide valid league ID';
 const makePlayerName = player_object =>
   player_object.first_name + ' ' + player_object.second_name;
 
@@ -62,7 +66,7 @@ class LandingPage extends React.Component {
       currentPageSize: 10,
       firstRowIndex: 0,
       selectedTeam: null,
-      current_price: 0,
+      current_price: config['minimum_price'],
       player_map: {},
       error_msg: null,
       add_error_msg: null,
@@ -70,7 +74,7 @@ class LandingPage extends React.Component {
   }
 
   componentDidMount = () => {
-    fetch(proxyURL + static_api, {
+    fetch(config['proxy_url'] + config['static_api'], {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -114,8 +118,8 @@ class LandingPage extends React.Component {
       return null;
     }
 
-    const url = league_api.replace('{league_id}', this.state.league_id);
-    fetch(proxyURL + url, {
+    const url = config['league_api'].replace('LEAGUE_ID', this.state.league_id);
+    fetch(config['proxy_url'] + url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -159,7 +163,7 @@ class LandingPage extends React.Component {
       });
     } else if (
       team_data[position].length ===
-      allowedPositions.find(item => item.name === position).times
+      config['allowed_positions'].find(item => item.name === position).times
     ) {
       this.setState({
         ...this.state,
@@ -247,7 +251,9 @@ class LandingPage extends React.Component {
                 labelText=""
                 helperText="Enter your League ID here to fetch player data"
                 invalidText={this.state.error_msg}
-                placeholder="Enter League ID e.g. 81463"
+                placeholder={
+                  'Enter League ID e.g. ' + config['default_leauge_id']
+                }
               />
               <br />
               <Button
@@ -346,7 +352,7 @@ class LandingPage extends React.Component {
                                 hideSteppers
                                 id="selection-value"
                                 value={this.state.current_price}
-                                min={0}
+                                min={config['minimum_price']}
                                 max={computeRemainingMoney(
                                   this.state.player_map[this.state.selectedTeam]
                                 )}
