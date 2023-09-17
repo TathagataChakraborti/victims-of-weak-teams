@@ -28,6 +28,9 @@ const leaderboardHeaders = [
 // const getCurrentPosition = (id, league_data) => {};
 // const getPreviousPosition = (id, league_data) => {};
 
+const monoMalinyo = (points, id, event) =>
+  event === 1 && id === 343164 ? points + 10 : points;
+
 const getPointsArrayFromID = (id, league_data) => {
   var points_array = [];
 
@@ -43,8 +46,8 @@ const getPointsArrayFromID = (id, league_data) => {
 
       if (points)
         points_array.push({
-          gameweek: item.event + 1,
-          points: points,
+          gameweek: item.event,
+          points: monoMalinyo(points, id, item.event),
         });
     }
   });
