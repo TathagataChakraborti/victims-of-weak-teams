@@ -19,10 +19,9 @@ const config = require('../../config.json');
 const leaderboardHeaders = [
   { key: 'move', header: '' },
   { key: 'name', header: 'Name' },
-  { key: 'gw', header: 'GW' },
   { key: 'h2h', header: 'H2H' },
-  { key: 'gw_points', header: 'GW Points' },
-  { key: 'total_points', header: 'Total Points' },
+  { key: 'gw_points', header: 'GW' },
+  { key: 'total_points', header: 'Points' },
 ];
 
 // const getCurrentPosition = (id, league_data) => {};
@@ -34,20 +33,20 @@ const monoMalinyo = (points, id, event) =>
 const getPointsArrayFromID = (id, league_data) => {
   var points_array = [];
 
-  league_data.matches.forEach(item => {
-    if (item.started) {
+  league_data.matches.forEach(match => {
+    if (match.started) {
       var points = null;
 
-      if (item.league_entry_1 === id) {
-        points = item.league_entry_1_points;
-      } else if (item.league_entry_2 === id) {
-        points = item.league_entry_2_points;
+      if (match.league_entry_1 === id) {
+        points = match.league_entry_1_points;
+      } else if (match.league_entry_2 === id) {
+        points = match.league_entry_2_points;
       }
 
       if (points)
         points_array.push({
-          gameweek: item.event,
-          points: monoMalinyo(points, id, item.event),
+          gameweek: match.event,
+          points: monoMalinyo(points, id, match.event),
         });
     }
   });
@@ -72,6 +71,17 @@ const getTeamNameFromID = (id, league_data) =>
 const getPlayerNameFromID = (id, league_data) => {
   const league_item = league_data.league_entries.find(item => id === item.id);
   return league_item.player_first_name + ' ' + league_item.player_last_name;
+};
+
+const getCurrentGW = league_data => {
+  var cache = league_data.matches.findLast(match => match.started);
+  return cache ? cache.event : 1;
+};
+
+const getCurrentGWStatus = league_data => {
+  var cache = league_data.matches.findLast(match => match.started);
+  console.log(444, cache && cache.finished);
+  return cache && cache.finished;
 };
 
 class LeaguePage extends React.Component {
@@ -164,8 +174,6 @@ class LeaguePage extends React.Component {
               </div>
             </div>
           ),
-          gw: getPointsArrayFromID(row.league_entry, this.state.league_data)
-            .length,
           h2h: row.total,
           gw_points: getGameweekPoints(
             row.league_entry,
@@ -219,33 +227,25 @@ class LeaguePage extends React.Component {
                     description={
                       <>
                         <div className="table-tag">
-                          <Tag
-                            size="sm"
-                            style={{ width: '100px' }}
-                            className="team-tag">
-                            League ID
-                          </Tag>
-                          <Tag
-                            size="sm"
-                            type="purple"
-                            style={{ width: '75px' }}
-                            className="team-tag">
+                          <Tag className="team-tag">League ID</Tag>
+                          <Tag type="purple" className="team-tag">
                             {this.state.league_id}
                           </Tag>
                         </div>
                         <div className="table-tag">
-                          <Tag
-                            size="sm"
-                            style={{ width: '100px' }}
-                            className="team-tag">
-                            Gameweek 5
+                          <Tag className="team-tag">
+                            Gameweek {getCurrentGW(this.state.league_data)}
                           </Tag>
                           <Tag
-                            size="sm"
-                            type="green"
-                            style={{ width: '75px' }}
+                            type={
+                              getCurrentGWStatus(this.state.league_data)
+                                ? 'green'
+                                : 'magenta'
+                            }
                             className="team-tag">
-                            LIVE
+                            {getCurrentGWStatus(this.state.league_data)
+                              ? 'DONE'
+                              : 'LIVE'}
                           </Tag>
                         </div>
                       </>

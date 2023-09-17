@@ -3,3 +3,11 @@
   display: flex;
   margin-top: 10px;
 }
+
+.table-tag > .cds--tag:nth-child(1) {
+  width: 100px;
+}
+
+.table-tag > .cds--tag:nth-child(2) {
+  width: 75px;
+}
