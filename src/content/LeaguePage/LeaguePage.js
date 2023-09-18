@@ -16,7 +16,11 @@ import {
   ToastNotification,
 } from '@carbon/react';
 
+import { LineChart } from '@carbon/charts-react';
+import '@carbon/charts-react/styles.css';
+
 const config = require('../../config.json');
+
 const leaderboardHeaders = [
   { key: 'move', header: 'POS' },
   { key: 'name', header: 'Name' },
@@ -25,8 +29,26 @@ const leaderboardHeaders = [
   { key: 'total_points', header: 'Points' },
 ];
 
+const trendOptions = {
+  title: 'Guns. And ships. And so the balance shifts.',
+  axes: {
+    bottom: {
+      title: 'Gameweek',
+      mapsTo: 'gameweek',
+      scaleType: 'linear',
+      domain: [1, 38],
+    },
+    left: {
+      mapsTo: 'points',
+      title: 'Points',
+      scaleType: 'linear',
+    },
+  },
+  curve: 'curveLinear',
+};
+
 const monoMalinyo = (points, id, event) =>
-  event === 1 && id === 343164 ? points + 13 : points;
+  event <= 1 && id === 343164 ? points + 10 : points;
 
 const getPointsArrayFromID = (id, league_data) => {
   var points_array = [];
@@ -113,6 +135,28 @@ const getMoveObject = (id, league_data) => {
   }
 };
 
+const generateTrendData = league_data => {
+  var data = [];
+
+  league_data.league_entries
+    .filter(entry => entry.entry_name)
+    .forEach(entry => {
+      const all_points_array = getPointsArrayFromID(entry.id, league_data).map(
+        (item, id) => {
+          return {
+            group: entry.entry_name,
+            gameweek: id + 1,
+            points: getTotalPoints(entry.id, league_data, id + 1),
+          };
+        }
+      );
+
+      data = data.concat(all_points_array);
+    });
+
+  return data;
+};
+
 const getPosition = (id, league_data, gameweek) => {
   const all_players_points_array = league_data.league_entries
     .filter(entry => entry.entry_name)
@@ -176,8 +220,20 @@ class LeaguePage extends React.Component {
 
             console.log(data);
 
-            // const path_to_data = './data/[ID].json'.replace("[ID]", this.state.league_id);
-            // import(`${path_to_data}`).then(({default: data}) => console.log(1, data));
+            const path_to_data = './data/[ID].json'.replace(
+              '[ID]',
+              this.state.league_id
+            );
+            import(`${path_to_data}`).then(({ default: data }) => {
+              const trend_options = {
+                ...trendOptions,
+              };
+
+              this.setState({
+                ...trendOptions,
+                trend_options: trend_options,
+              });
+            });
 
             // fetch(config['proxy_url'] + config['static_api'], {
             //   method: 'GET',
@@ -249,11 +305,11 @@ class LeaguePage extends React.Component {
     });
 
     return (
-      <Theme theme="g90">
+      <Theme theme="g10" style={{ minHeight: '100vh' }}>
         <br />
         <br />
         <Grid>
-          <Column lg={6} md={4} sm={2}>
+          <Column lg={6} md={8} sm={4} className="bottom-space">
             {this.state.league_not_found && (
               <ToastNotification
                 lowContrast
@@ -332,7 +388,13 @@ class LeaguePage extends React.Component {
               />
             )}
           </Column>
-          <Column lg={10} md={4} sm={2}></Column>
+          <Column lg={10} md={8} sm={4} className="bottom-space">
+            {this.state.league_data && (
+              <LineChart
+                data={generateTrendData(this.state.league_data)}
+                options={trendOptions}></LineChart>
+            )}
+          </Column>
         </Grid>
       </Theme>
     );
