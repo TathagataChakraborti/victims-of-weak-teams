@@ -82,7 +82,8 @@ const getPointsArrayFromID = (id, league_data) => {
 
 const getTotalPoints = (id, league_data, gameweek) => {
   var all_points_array = getPointsArrayFromID(id, league_data);
-  var gw = typeof gameweek === 'undefined' ? all_points_array.length : gameweek;
+  var gw =
+    typeof gameweek === 'undefined' ? getCurrentGW(league_data) : gameweek;
 
   all_points_array = all_points_array.filter(item => item.gameweek <= gw);
 
@@ -91,7 +92,10 @@ const getTotalPoints = (id, league_data, gameweek) => {
 
 const getGameweekPoints = (id, league_data, gameweek) => {
   const points_array = getPointsArrayFromID(id, league_data);
-  const points = points_array.find(item => item.gameweek == gameweek);
+  const gw =
+    typeof gameweek === 'undefined' ? getCurrentGW(league_data) : gameweek;
+
+  const points = points_array.find(item => item.gameweek === gw).points;
 
   return points ? points : 0;
 };
@@ -140,6 +144,28 @@ const getMoveObject = (id, league_data) => {
       </>
     );
   }
+};
+
+const generateTrendDataAverage = league_data => {
+  var data = [];
+
+  league_data.league_entries
+    .filter(entry => entry.entry_name)
+    .forEach(entry => {
+      const all_points_array = getPointsArrayFromID(entry.id, league_data)
+        .filter(item => item.gameweek)
+        .map((item, id) => {
+          return {
+            group: entry.entry_name,
+            gameweek: id + 1,
+            points: getTotalPoints(entry.id, league_data, id + 1) / (id + 1),
+          };
+        });
+
+      data = data.concat(all_points_array);
+    });
+
+  return data;
 };
 
 const generateTrendData = league_data => {
@@ -200,6 +226,7 @@ class LeaguePage extends React.Component {
       league_id: league_id,
       league_not_found: !Boolean(league_id),
       league_data: null,
+      trend_index: 0,
     };
   }
 
@@ -231,26 +258,37 @@ class LeaguePage extends React.Component {
                   this.state.league_id
                 );
                 import(`${path_to_data}`).then(({ default: data }) => {
-                  const trend_options = {
-                    ...trendOptions,
-                    axes: {
-                      ...trendOptions.axes,
-                      bottom: {
-                        ...trendOptions.axes.bottom,
-                        domain: [
-                          0,
-                          this.state.league_data.standings[0].matches_played,
-                        ],
-                      },
-                    },
-                    height:
-                      (Object.keys(data['player_map']).length * 80).toString() +
-                      'px',
-                  };
+                  const average_data = generateTrendDataAverage(
+                    this.state.league_data
+                  ).map(item => item.points);
+
+                  var trend_options_cum = JSON.parse(
+                    JSON.stringify(trendOptions)
+                  );
+                  trend_options_cum.axes.bottom.domain = [
+                    0,
+                    this.state.league_data.standings[0].matches_played,
+                  ];
+                  trend_options_cum.axes.height =
+                    (Object.keys(data['player_map']).length * 80).toString() +
+                    'px';
+
+                  var trend_options_avg = JSON.parse(
+                    JSON.stringify(trend_options_cum)
+                  );
+                  trend_options_avg.axes.bottom.domain = [
+                    1,
+                    getCurrentGW(this.state.league_data),
+                  ];
+                  trend_options_avg.axes.left.domain = [
+                    Math.min(...average_data),
+                    Math.max(...average_data),
+                  ];
 
                   this.setState({
                     ...trendOptions,
-                    trend_options_cumulative: trend_options,
+                    trend_options_cumulative: trend_options_cum,
+                    trend_options_average: trend_options_avg,
                   });
                 });
               }
@@ -416,7 +454,7 @@ class LeaguePage extends React.Component {
                 <ContentSwitcher
                   size="sm"
                   onChange={e => {
-                    this.setState({ ...this.state, index: e.index });
+                    this.setState({ ...this.state, trend_index: e.index });
                   }}>
                   <Switch name="cumulative" text="Cumulative" />
                   <Switch name="average" text="Average" />
@@ -425,11 +463,18 @@ class LeaguePage extends React.Component {
                 <br />
               </Column>
             </Grid>
-            {this.state.league_data && !this.state.index && (
+            {this.state.league_data && this.state.trend_index === 0 && (
               <LineChart
                 data={generateTrendData(this.state.league_data)}
                 options={
                   this.state.trend_options_cumulative || trendOptions
+                }></LineChart>
+            )}
+            {this.state.league_data && this.state.trend_index === 1 && (
+              <LineChart
+                data={generateTrendDataAverage(this.state.league_data)}
+                options={
+                  this.state.trend_options_average || trendOptions
                 }></LineChart>
             )}
           </Column>
