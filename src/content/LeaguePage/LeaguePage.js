@@ -14,6 +14,8 @@ import {
   TableHead,
   Tag,
   ToastNotification,
+  ContentSwitcher,
+  Switch,
 } from '@carbon/react';
 
 import { LineChart } from '@carbon/charts-react';
@@ -36,7 +38,6 @@ const trendOptions = {
       title: 'Gameweek',
       mapsTo: 'gameweek',
       scaleType: 'linear',
-      domain: [1, 38],
     },
     left: {
       mapsTo: 'points',
@@ -45,13 +46,18 @@ const trendOptions = {
     },
   },
   curve: 'curveLinear',
+  height: '400px',
 };
 
-const monoMalinyo = (points, id, event) =>
-  event <= 1 && id === 343164 ? points + 10 : points;
+const monoMalinyo = id => (id === 343164 ? 10 : 0);
 
 const getPointsArrayFromID = (id, league_data) => {
-  var points_array = [];
+  var points_array = [
+    {
+      gameweek: 0,
+      points: monoMalinyo(id),
+    },
+  ];
 
   league_data.matches.forEach(match => {
     if (match.started) {
@@ -63,10 +69,10 @@ const getPointsArrayFromID = (id, league_data) => {
         points = match.league_entry_2_points;
       }
 
-      if (points)
+      if (points !== null)
         points_array.push({
           gameweek: match.event,
-          points: monoMalinyo(points, id, match.event),
+          points: points,
         });
     }
   });
@@ -76,17 +82,18 @@ const getPointsArrayFromID = (id, league_data) => {
 
 const getTotalPoints = (id, league_data, gameweek) => {
   var all_points_array = getPointsArrayFromID(id, league_data);
+  var gw = typeof gameweek === 'undefined' ? all_points_array.length : gameweek;
 
-  if (gameweek) all_points_array = all_points_array.slice(0, gameweek);
+  all_points_array = all_points_array.filter(item => item.gameweek <= gw);
 
   return all_points_array.reduce((total, item) => total + item.points, 0);
 };
 
 const getGameweekPoints = (id, league_data, gameweek) => {
   const points_array = getPointsArrayFromID(id, league_data);
-  const idx = gameweek ? gameweek - 1 : points_array.length - 1;
+  const points = points_array.find(item => item.gameweek == gameweek);
 
-  return idx < points_array.length ? points_array[idx].points : 0;
+  return points ? points : 0;
 };
 
 const getTeamNameFromID = (id, league_data) =>
@@ -145,8 +152,8 @@ const generateTrendData = league_data => {
         (item, id) => {
           return {
             group: entry.entry_name,
-            gameweek: id + 1,
-            points: getTotalPoints(entry.id, league_data, id + 1),
+            gameweek: id,
+            points: getTotalPoints(entry.id, league_data, id),
           };
         }
       );
@@ -211,29 +218,43 @@ class LeaguePage extends React.Component {
       })
         .then(res => res.json())
         .then(data => {
-          if (data.standings) {
-            this.setState({
-              ...this.state,
-              league_data: data,
-              league_not_found: false,
-            });
+          if (data.standings && data.standings.length >= 1) {
+            this.setState(
+              {
+                ...this.state,
+                league_data: data,
+                league_not_found: false,
+              },
+              () => {
+                const path_to_data = './data/[ID].json'.replace(
+                  '[ID]',
+                  this.state.league_id
+                );
+                import(`${path_to_data}`).then(({ default: data }) => {
+                  const trend_options = {
+                    ...trendOptions,
+                    axes: {
+                      ...trendOptions.axes,
+                      bottom: {
+                        ...trendOptions.axes.bottom,
+                        domain: [
+                          0,
+                          this.state.league_data.standings[0].matches_played,
+                        ],
+                      },
+                    },
+                    height:
+                      (Object.keys(data['player_map']).length * 80).toString() +
+                      'px',
+                  };
 
-            console.log(data);
-
-            const path_to_data = './data/[ID].json'.replace(
-              '[ID]',
-              this.state.league_id
+                  this.setState({
+                    ...trendOptions,
+                    trend_options_cumulative: trend_options,
+                  });
+                });
+              }
             );
-            import(`${path_to_data}`).then(({ default: data }) => {
-              const trend_options = {
-                ...trendOptions,
-              };
-
-              this.setState({
-                ...trendOptions,
-                trend_options: trend_options,
-              });
-            });
 
             // fetch(config['proxy_url'] + config['static_api'], {
             //   method: 'GET',
@@ -301,13 +322,14 @@ class LeaguePage extends React.Component {
           }));
 
     rows.sort(function(a, b) {
-      return b.total_points - a.total_points;
+      return a.position - b.position;
     });
 
     return (
       <Theme theme="g10" style={{ minHeight: '100vh' }}>
         <br />
         <br />
+
         <Grid>
           <Column lg={6} md={8} sm={4} className="bottom-space">
             {this.state.league_not_found && (
@@ -389,10 +411,26 @@ class LeaguePage extends React.Component {
             )}
           </Column>
           <Column lg={10} md={8} sm={4} className="bottom-space">
-            {this.state.league_data && (
+            <Grid>
+              <Column lg={4} md={4} sm={2}>
+                <ContentSwitcher
+                  size="sm"
+                  onChange={e => {
+                    this.setState({ ...this.state, index: e.index });
+                  }}>
+                  <Switch name="cumulative" text="Cumulative" />
+                  <Switch name="average" text="Average" />
+                </ContentSwitcher>
+                <br />
+                <br />
+              </Column>
+            </Grid>
+            {this.state.league_data && !this.state.index && (
               <LineChart
                 data={generateTrendData(this.state.league_data)}
-                options={trendOptions}></LineChart>
+                options={
+                  this.state.trend_options_cumulative || trendOptions
+                }></LineChart>
             )}
           </Column>
         </Grid>
