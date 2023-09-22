@@ -7946,6 +7946,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"github-buttons@npm:^2.22.0":
+  version: 2.27.0
+  resolution: "github-buttons@npm:2.27.0"
+  checksum: 1954e04fc7e65a5c14b9c0726b486015deee648c9de62f7f0d4267bbd548090f57137d33e1755490736b10578c4fc7bf149fe64c296d7634a1bfc3707e25e96b
+  languageName: node
+  linkType: hard
+
 "glob-parent@npm:^5.1.2, glob-parent@npm:~5.1.2":
   version: 5.1.2
   resolution: "glob-parent@npm:5.1.2"
@@ -12963,6 +12970,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-github-btn@npm:^1.4.0":
+  version: 1.4.0
+  resolution: "react-github-btn@npm:1.4.0"
+  dependencies:
+    github-buttons: ^2.22.0
+  peerDependencies:
+    react: ">=16.3.0"
+  checksum: 33a416ad76ab4cc9238ac5cf5cfcab636bb2127c48fb30805385350fd3a3c2aa0aaeb78f6c726c52a0d3d133ca469be35d4b3d188c8e40c735c7ff458d2c8c3c
+  languageName: node
+  linkType: hard
+
 "react-is@npm:^16.13.1, react-is@npm:^16.6.0, react-is@npm:^16.7.0":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -15545,6 +15563,7 @@ __metadata:
     react: ^18.1.0
     react-autosuggest: ^10.0.2
     react-dom: ^18.1.0
+    react-github-btn: ^1.4.0
     react-router-dom: ^5.0.0
     react-scripts: ^5.0.1
     sass: ^1.51.0

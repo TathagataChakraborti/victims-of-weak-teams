@@ -1,13 +1,17 @@
 import React from 'react';
+import GitHubButton from 'react-github-btn';
+
 import { Link as NewLink } from 'react-router-dom';
 import { Bee, Soccer, HelpFilled, Add } from '@carbon/icons-react';
 import { TeamTile } from '../../components/BasicElements';
+import { LINKS } from './Links';
 import {
   initializeTeam,
   isAuctionDone,
   getPlayerPosition,
   getPlayerTeam,
   computeRemainingMoney,
+  generateUrl,
 } from '../../components/Info';
 
 import {
@@ -37,6 +41,7 @@ import {
   Dropdown,
   NumberInput,
   InlineNotification,
+  ClickableTile,
 } from '@carbon/react';
 
 const config = require('../../config.json');
@@ -234,7 +239,7 @@ class LandingPage extends React.Component {
     return (
       <Theme theme="g90" style={{ height: '100vh' }}>
         <Grid>
-          <Column lg={7} md={4} sm={2}>
+          <Column lg={7} md={8} sm={4}>
             <br />
             <br />
             <Tile>
@@ -503,10 +508,37 @@ class LandingPage extends React.Component {
                     });
                   }}
                 />
+                <br />
+                <br />
               </>
             )}
+
+            {LINKS.map((item, id) => (
+              <ClickableTile
+                key={id}
+                href={item.url}
+                target="_blank"
+                className="reference-tile">
+                <img
+                  alt={item.name}
+                  src={generateUrl(
+                    'images/' + item.name.toLowerCase().replaceAll(' ', '-')
+                  )}
+                />
+              </ClickableTile>
+            ))}
+
+            <br />
+            <br />
+            <GitHubButton
+              href="https://github.com/TathagataChakraborti/victims-of-weak-teams"
+              data-size="small"
+              data-show-count="true"
+              aria-label="Stars on GitHub">
+              Star
+            </GitHubButton>
           </Column>
-          <Column lg={9} md={4} sm={2}>
+          <Column lg={9} md={8} sm={4}>
             <br />
             <br />
 
