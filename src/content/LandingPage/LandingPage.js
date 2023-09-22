@@ -42,6 +42,8 @@ import {
   NumberInput,
   InlineNotification,
   ClickableTile,
+  FileUploaderDropContainer,
+  FormItem,
 } from '@carbon/react';
 
 const config = require('../../config.json');
@@ -119,33 +121,43 @@ class LandingPage extends React.Component {
         ...this.state,
         error_msg: invalid_league_id_msg,
       });
-
-      return null;
-    }
-
-    const url = config['league_api'].replace('LEAGUE_ID', this.state.league_id);
-    fetch(config['proxy_url'] + url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    })
-      .then(res => res.json())
-      .then(data => {
-        var player_map = {};
-        data.league_entries
-          .filter(item => item.entry_name)
-          .forEach(item => {
-            player_map[item.entry_name] = initializeTeam();
-          });
-
-        this.setState({
+    } else {
+      this.setState(
+        {
           ...this.state,
-          league_data: data,
-          player_map: player_map,
-        });
-      });
+          league_data: null,
+          player_map: {},
+        },
+        () => {
+          const url = config['league_api'].replace(
+            'LEAGUE_ID',
+            this.state.league_id
+          );
+          fetch(config['proxy_url'] + url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          })
+            .then(res => res.json())
+            .then(data => {
+              var player_map = {};
+              data.league_entries
+                .filter(item => item.entry_name)
+                .forEach(item => {
+                  player_map[item.entry_name] = initializeTeam();
+                });
+
+              this.setState({
+                ...this.state,
+                league_data: data,
+                player_map: player_map,
+              });
+            });
+        }
+      );
+    }
   };
 
   addPlayer = selectedItem => {
@@ -221,6 +233,34 @@ class LandingPage extends React.Component {
       player_map: player_map,
       player_list: new_player_list,
     });
+  }
+
+  uploadFile(e) {
+    this.setState(
+      {
+        ...this.state,
+        league_id: '',
+        player_map: {},
+        league_data: null,
+      },
+      () => {
+        const file_object = e.target.files[0];
+        const file_reader = new FileReader();
+
+        file_reader.onload = async loadEvent => {
+          const new_data = JSON.parse(loadEvent.target.result);
+
+          this.setState({
+            ...this.state,
+            league_id: new_data.league_id,
+            player_map: new_data.player_map,
+            league_data: new_data.league_data,
+          });
+        };
+
+        file_reader.readAsText(file_object);
+      }
+    );
   }
 
   render() {
@@ -552,6 +592,55 @@ class LandingPage extends React.Component {
             )}
 
             <Grid>
+              <Column lg={3} md={2} sm={2} style={{ marginBottom: '30px' }}>
+                <Tile>
+                  <FormItem>
+                    <p className="cds--file--label">Upload file</p>
+                    <p className="cds--label-description">
+                      Upload the saved JSON file from a previous auction. Or
+                      start a new auction by entering your League ID and
+                      clicking Fetch on the left.
+                    </p>
+                    <FileUploaderDropContainer
+                      accept={['document/json']}
+                      innerRef={{
+                        current: '[Circular]',
+                      }}
+                      labelText="Drag and drop files here or click to upload"
+                      multiple
+                      name=""
+                      onAddFiles={this.uploadFile.bind(this)}
+                      onChange={function noRefCheck() {}}
+                    />
+                    <div className="cds--file-container cds--file-container--drop" />
+                  </FormItem>
+
+                  {isAuctionDone(this.state.player_map) && (
+                    <>
+                      <br />
+                      <Button
+                        kind="primary"
+                        size="sm"
+                        href={`data:text/json;charset=utf-8,${encodeURIComponent(
+                          JSON.stringify(
+                            {
+                              league_id: this.state.league_id,
+                              static_data: this.state.static_data,
+                              player_map: this.state.player_map,
+                              league_data: this.state.league_data,
+                            },
+                            0,
+                            2
+                          )
+                        )}`}
+                        download={'data.json'}>
+                        Save
+                      </Button>
+                    </>
+                  )}
+                </Tile>
+              </Column>
+
               {this.state.league_data && (
                 <>
                   {this.state.league_data.league_entries
@@ -567,31 +656,6 @@ class LandingPage extends React.Component {
                 </>
               )}
             </Grid>
-
-            {isAuctionDone(this.state.player_map) && (
-              <>
-                <Button
-                  kind="primary"
-                  size="sm"
-                  href={`data:text/json;charset=utf-8,${encodeURIComponent(
-                    JSON.stringify(
-                      {
-                        league_id: this.state.league_id,
-                        static_data: this.state.static_data,
-                        player_map: this.state.player_map,
-                      },
-                      0,
-                      2
-                    )
-                  )}`}
-                  download={'data.json'}>
-                  Save
-                </Button>
-                <br />
-                <br />
-                <br />
-              </>
-            )}
           </Column>
         </Grid>
       </Theme>
