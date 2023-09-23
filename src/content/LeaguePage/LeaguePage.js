@@ -19,7 +19,7 @@ import {
 } from '@carbon/react';
 
 import { LineChart } from '@carbon/charts-react';
-import '@carbon/charts-react/styles.css';
+import '@carbon/charts/styles.css';
 
 const config = require('../../config.json');
 

@@ -7,7 +7,6 @@ import { TeamTile } from '../../components/BasicElements';
 import { LINKS } from './Links';
 import {
   initializeTeam,
-  isAuctionDone,
   getPlayerPosition,
   getPlayerTeam,
   computeRemainingMoney,
@@ -43,10 +42,23 @@ import {
   InlineNotification,
   ClickableTile,
   FileUploaderDropContainer,
-  FormItem,
+  FileUploaderItem,
 } from '@carbon/react';
 
+import { GaugeChart } from '@carbon/charts-react';
+import '@carbon/charts-react/styles.css';
+
 const config = require('../../config.json');
+
+const completionChartOptions = {
+  title: 'Auction Progress',
+  theme: 'g100',
+  height: '200px',
+  gauge: {
+    type: 'full',
+  },
+};
+
 const infoTableHeaders = [
   { key: 'dr', header: 'DR' },
   { key: 'name', header: 'Name' },
@@ -61,6 +73,27 @@ const invalid_league_id_msg = 'Please provide valid league ID';
 const makePlayerName = player_object =>
   player_object.first_name + ' ' + player_object.second_name;
 
+const getAverage = arr =>
+  arr.length ? arr.reduce((total, item) => total + item, 0) / arr.length : 0;
+
+const getTeamProgress = team_map =>
+  Object.values(team_map).reduce((bag, item) => bag.concat(item), []).length /
+  config['allowed_positions'].reduce((total, item) => total + item.times, 0);
+
+const getAuctionProgress = player_map => {
+  const list_of_team_progress = Object.values(player_map).map(team_map =>
+    getTeamProgress(team_map)
+  );
+  const average = getAverage(list_of_team_progress);
+
+  return [
+    {
+      group: 'value',
+      value: 100 * average,
+    },
+  ];
+};
+
 class LandingPage extends React.Component {
   constructor(props) {
     super(props);
@@ -70,13 +103,15 @@ class LandingPage extends React.Component {
       static_data: null,
       player_list: [],
       current_type: '',
-      currentPageSize: 10,
+      currentPageSize: 5,
       firstRowIndex: 0,
       selectedTeam: null,
       current_price: config['minimum_price'],
       player_map: {},
       error_msg: null,
       add_error_msg: null,
+      uploadedFile: null,
+      invalid_upload: false,
     };
   }
 
@@ -151,8 +186,15 @@ class LandingPage extends React.Component {
 
               this.setState({
                 ...this.state,
+                error_msg: '',
                 league_data: data,
                 player_map: player_map,
+              });
+            })
+            .catch(error => {
+              this.setState({
+                ...this.state,
+                error_msg: invalid_league_id_msg,
               });
             });
         }
@@ -250,12 +292,22 @@ class LandingPage extends React.Component {
         file_reader.onload = async loadEvent => {
           const new_data = JSON.parse(loadEvent.target.result);
 
-          this.setState({
-            ...this.state,
-            league_id: new_data.league_id,
-            player_map: new_data.player_map,
-            league_data: new_data.league_data,
-          });
+          if (new_data && new_data.player_map) {
+            this.setState({
+              ...this.state,
+              league_id: new_data.league_id,
+              player_map: new_data.player_map,
+              league_data: new_data.league_data,
+              uploadedFile: file_object.name,
+              invalid_upload: false,
+            });
+          } else {
+            this.setState({
+              ...this.state,
+              uploadedFile: file_object.name,
+              invalid_upload: true,
+            });
+          }
         };
 
         file_reader.readAsText(file_object);
@@ -282,57 +334,123 @@ class LandingPage extends React.Component {
           <Column lg={7} md={8} sm={4}>
             <br />
             <br />
-            <Tile>
-              <TextInput
-                invalid={Boolean(this.state.error_msg)}
-                value={this.state.league_id}
-                onChange={e => {
-                  this.setState({
-                    ...this.state,
-                    league_id: e.target.value,
-                  });
-                }}
-                id="league_id"
-                labelText=""
-                helperText="Enter your League ID here to fetch player data"
-                invalidText={this.state.error_msg}
-                placeholder={
-                  'Enter League ID e.g. ' + config['default_league_id']
-                }
-              />
-              <br />
-              <Button
-                onClick={this.fetchLeagueData.bind(this)}
-                kind="primary"
-                size="sm"
-                style={{ marginRight: '10px' }}>
-                Fetch
-              </Button>
+            <Grid>
+              <Column lg={4} md={4} sm={4}>
+                <Tile style={{ minHeight: '100%' }}>
+                  <TextInput
+                    invalid={Boolean(this.state.error_msg)}
+                    value={this.state.league_id}
+                    onChange={e => {
+                      this.setState({
+                        ...this.state,
+                        league_id: e.target.value,
+                      });
+                    }}
+                    id="league_id"
+                    labelText=""
+                    helperText="Enter your League ID here to fetch player data"
+                    invalidText={this.state.error_msg}
+                    placeholder={
+                      'Enter League ID e.g. ' + config['default_league_id']
+                    }
+                  />
+                  <br />
+                  <Button
+                    onClick={this.fetchLeagueData.bind(this)}
+                    kind="primary"
+                    size="sm"
+                    style={{ marginRight: '10px' }}>
+                    Fetch
+                  </Button>
 
-              <NewLink
-                to={{
-                  pathname: '/leaderboard',
-                  state: { id: this.state.league_id },
-                }}
-                className="no-decoration-enforce">
-                <Button
-                  kind="tertiary"
-                  size="sm"
-                  style={{ marginRight: '10px' }}>
-                  Go To League
-                </Button>
-              </NewLink>
+                  <NewLink
+                    to={{
+                      pathname: '/leaderboard',
+                      state: { id: this.state.league_id },
+                    }}
+                    className="no-decoration-enforce">
+                    <Button
+                      kind="tertiary"
+                      size="sm"
+                      style={{ marginRight: '10px' }}>
+                      Go To League
+                    </Button>
+                  </NewLink>
 
-              <Button
-                hasIconOnly
-                renderIcon={HelpFilled}
-                iconDescription="Help"
-                kind="ghost"
-                size="sm"
-                href="https://allaboutfpl.com/2023/07/what-is-team-id-in-fpl-how-to-get-a-low-fpl-team-id/#:~:text=Login%20to%20your%20FPL%20account,is%20your%20FPL%20team%20ID"
-                target="_blank"
-              />
-            </Tile>
+                  <Button
+                    hasIconOnly
+                    renderIcon={HelpFilled}
+                    iconDescription="Help"
+                    kind="ghost"
+                    size="sm"
+                    href="https://allaboutfpl.com/2023/07/what-is-team-id-in-fpl-how-to-get-a-low-fpl-team-id/#:~:text=Login%20to%20your%20FPL%20account,is%20your%20FPL%20team%20ID"
+                    target="_blank"
+                  />
+                  <br />
+                  <br />
+                  <div style={{ width: '75%' }}>
+                    <FileUploaderDropContainer
+                      accept={['application/json']}
+                      labelText="Fetch to start new auction or upload saved auction file here."
+                      multiple
+                      name=""
+                      onAddFiles={this.uploadFile.bind(this)}
+                    />
+                    <div className="cds--file-container cds--file-container--drop" />
+
+                    {this.state.uploadedFile && (
+                      <Theme theme="g100">
+                        <FileUploaderItem
+                          invalid={this.state.invalid_upload}
+                          errorBody="Could not read auction data."
+                          errorSubject="ERROR"
+                          iconDescription="Delete file"
+                          name={this.state.uploadedFile}
+                          onDelete={() => {
+                            this.setState({
+                              ...this.state,
+                              league_id: '',
+                              league_data: null,
+                              player_map: {},
+                              uploadedFile: null,
+                            });
+                          }}
+                          size="sm"
+                          status="edit"
+                        />
+                      </Theme>
+                    )}
+                  </div>
+                </Tile>
+              </Column>
+              <Column lg={3} md={4} sm={4}>
+                <Tile style={{ paddingLeft: '25px', minHeight: '100%' }}>
+                  <GaugeChart
+                    data={getAuctionProgress(this.state.player_map)}
+                    options={completionChartOptions}></GaugeChart>
+
+                  <Button
+                    style={{ marginTop: '25px' }}
+                    kind="secondary"
+                    size="sm"
+                    href={`data:text/json;charset=utf-8,${encodeURIComponent(
+                      JSON.stringify(
+                        {
+                          league_id: this.state.league_id,
+                          static_data: this.state.static_data,
+                          player_map: this.state.player_map,
+                          league_data: this.state.league_data,
+                        },
+                        0,
+                        2
+                      )
+                    )}`}
+                    download={'data.json'}>
+                    Save
+                  </Button>
+                </Tile>
+              </Column>
+            </Grid>
 
             <br />
             <br />
@@ -592,55 +710,6 @@ class LandingPage extends React.Component {
             )}
 
             <Grid>
-              <Column lg={3} md={2} sm={2} style={{ marginBottom: '30px' }}>
-                <Tile>
-                  <FormItem>
-                    <p className="cds--file--label">Upload file</p>
-                    <p className="cds--label-description">
-                      Upload the saved JSON file from a previous auction. Or
-                      start a new auction by entering your League ID and
-                      clicking Fetch on the left.
-                    </p>
-                    <FileUploaderDropContainer
-                      accept={['document/json']}
-                      innerRef={{
-                        current: '[Circular]',
-                      }}
-                      labelText="Drag and drop files here or click to upload"
-                      multiple
-                      name=""
-                      onAddFiles={this.uploadFile.bind(this)}
-                      onChange={function noRefCheck() {}}
-                    />
-                    <div className="cds--file-container cds--file-container--drop" />
-                  </FormItem>
-
-                  {isAuctionDone(this.state.player_map) && (
-                    <>
-                      <br />
-                      <Button
-                        kind="primary"
-                        size="sm"
-                        href={`data:text/json;charset=utf-8,${encodeURIComponent(
-                          JSON.stringify(
-                            {
-                              league_id: this.state.league_id,
-                              static_data: this.state.static_data,
-                              player_map: this.state.player_map,
-                              league_data: this.state.league_data,
-                            },
-                            0,
-                            2
-                          )
-                        )}`}
-                        download={'data.json'}>
-                        Save
-                      </Button>
-                    </>
-                  )}
-                </Tile>
-              </Column>
-
               {this.state.league_data && (
                 <>
                   {this.state.league_data.league_entries
