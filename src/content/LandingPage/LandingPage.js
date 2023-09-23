@@ -712,16 +712,30 @@ class LandingPage extends React.Component {
             <Grid>
               {this.state.league_data && (
                 <>
-                  {this.state.league_data.league_entries
-                    .filter(item => item.entry_name)
-                    .map((item, id) => (
-                      <TeamTile
-                        key={id}
-                        team_info={item}
-                        team_data={this.state.player_map[item.entry_name]}
-                        removePlayer={this.removePlayer.bind(this)}
-                      />
-                    ))}
+                  {[...Array(3).keys()].map(item => (
+                    <Column lg={3} md={8} sm={4}>
+                      {this.state.league_data.league_entries
+                        .slice(
+                          item *
+                            Math.floor(
+                              this.state.league_data.league_entries.length / 3
+                            ),
+                          (item + 1) *
+                            Math.floor(
+                              this.state.league_data.league_entries.length / 3
+                            )
+                        )
+                        .filter(item => item.entry_name)
+                        .map((item, id) => (
+                          <TeamTile
+                            key={id}
+                            team_info={item}
+                            team_data={this.state.player_map[item.entry_name]}
+                            removePlayer={this.removePlayer.bind(this)}
+                          />
+                        ))}
+                    </Column>
+                  ))}
                 </>
               )}
             </Grid>
