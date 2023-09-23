@@ -76,8 +76,11 @@ const makePlayerName = player_object =>
 const getAverage = arr =>
   arr.length ? arr.reduce((total, item) => total + item, 0) / arr.length : 0;
 
+const getAllPlayersInTeam = team_map =>
+  Object.values(team_map).reduce((bag, item) => bag.concat(item), []);
+
 const getTeamProgress = team_map =>
-  Object.values(team_map).reduce((bag, item) => bag.concat(item), []).length /
+  getAllPlayersInTeam(team_map).length /
   config['allowed_positions'].reduce((total, item) => total + item.times, 0);
 
 const getAuctionProgress = player_map => {
@@ -293,12 +296,22 @@ class LandingPage extends React.Component {
           const new_data = JSON.parse(loadEvent.target.result);
 
           if (new_data && new_data.player_map) {
+            const all_player_list = Object.values(new_data.player_map)
+              .map(team_map => getAllPlayersInTeam(team_map))
+              .reduce((bag, item) => bag.concat(item, []))
+              .map(item => item.name);
+
+            const new_player_list = this.state.player_list.filter(
+              item => all_player_list.indexOf(makePlayerName(item)) === -1
+            );
+
             this.setState({
               ...this.state,
               league_id: new_data.league_id,
               player_map: new_data.player_map,
               league_data: new_data.league_data,
               uploadedFile: file_object.name,
+              player_list: new_player_list,
               invalid_upload: false,
             });
           } else {
@@ -412,6 +425,7 @@ class LandingPage extends React.Component {
                               league_id: '',
                               league_data: null,
                               player_map: {},
+                              player_list: this.state.static_data.elements,
                               uploadedFile: null,
                             });
                           }}
