@@ -90,8 +90,8 @@ class TeamTile extends React.Component {
                     </div>
                   }
                   kind="disclosed">
-                  {this.state.team_data[position].map(player => (
-                    <ContainedListItem>
+                  {this.state.team_data[position].map((player, pid) => (
+                    <ContainedListItem key={pid}>
                       <div
                         style={{
                           display: 'flex',

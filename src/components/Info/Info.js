@@ -4,6 +4,13 @@ function generateUrl(url) {
   return `${process.env.PUBLIC_URL}/${url}.png`;
 }
 
+function generateLeagueAPI(league_id) {
+  return config.league_api.replace(
+    '{LEAGUE_ID}',
+    league_id ? league_id : '{LEAGUE_ID}'
+  );
+}
+
 function computeRemainingMoney(player_map_item) {
   var current_value = 0.0;
 
@@ -67,6 +74,7 @@ function getPlayerTeam(element, data) {
 
 export {
   generateUrl,
+  generateLeagueAPI,
   computeRemainingMoney,
   initializeTeam,
   isAuctionDone,

@@ -2,15 +2,20 @@ import React from 'react';
 import GitHubButton from 'react-github-btn';
 
 import { Link as NewLink } from 'react-router-dom';
-import { Bee, Soccer, HelpFilled, Add } from '@carbon/icons-react';
+import { Bee, Soccer, InformationSquareFilled, Add } from '@carbon/icons-react';
 import { TeamTile } from '../../components/BasicElements';
+
 import { LINKS } from './Links';
+import { AuctionInformationModal } from './InformationModal';
+
 import {
   initializeTeam,
   getPlayerPosition,
   getPlayerTeam,
   computeRemainingMoney,
   generateUrl,
+  isAuctionDone,
+  generateLeagueAPI,
 } from '../../components/Info';
 
 import {
@@ -34,7 +39,6 @@ import {
   TableBody,
   TableCell,
   Tile,
-  TextInput,
   Button,
   Pagination,
   Dropdown,
@@ -81,7 +85,7 @@ const getAllPlayersInTeam = team_map =>
 
 const getTeamProgress = team_map =>
   getAllPlayersInTeam(team_map).length /
-  config['allowed_positions'].reduce((total, item) => total + item.times, 0);
+  config.allowed_positions.reduce((total, item) => total + item.times, 0);
 
 const getAuctionProgress = player_map => {
   const list_of_team_progress = Object.values(player_map).map(team_map =>
@@ -106,20 +110,21 @@ class LandingPage extends React.Component {
       static_data: null,
       player_list: [],
       current_type: '',
-      currentPageSize: 5,
+      currentPageSize: 10,
       firstRowIndex: 0,
       selectedTeam: null,
-      current_price: config['minimum_price'],
+      current_price: config.minimum_price,
       player_map: {},
       error_msg: null,
       add_error_msg: null,
       uploadedFile: null,
       invalid_upload: false,
+      modal_open: false,
     };
   }
 
   componentDidMount = () => {
-    fetch(config['proxy_url'] + config['static_api'], {
+    fetch(config.proxy_url + config.static_api, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -167,11 +172,7 @@ class LandingPage extends React.Component {
           player_map: {},
         },
         () => {
-          const url = config['league_api'].replace(
-            'LEAGUE_ID',
-            this.state.league_id
-          );
-          fetch(config['proxy_url'] + url, {
+          fetch(config.proxy_url + generateLeagueAPI(this.state.league_id), {
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
@@ -225,7 +226,7 @@ class LandingPage extends React.Component {
       });
     } else if (
       team_data[position].length ===
-      config['allowed_positions'].find(item => item.name === position).times
+      config.allowed_positions.find(item => item.name === position).times
     ) {
       this.setState({
         ...this.state,
@@ -350,7 +351,9 @@ class LandingPage extends React.Component {
             <Grid>
               <Column lg={4} md={4} sm={4}>
                 <Tile style={{ minHeight: '100%' }}>
-                  <TextInput
+                  <NumberInput
+                    allowEmpty
+                    hideSteppers
                     invalid={Boolean(this.state.error_msg)}
                     value={this.state.league_id}
                     onChange={e => {
@@ -360,11 +363,10 @@ class LandingPage extends React.Component {
                       });
                     }}
                     id="league_id"
-                    labelText=""
                     helperText="Enter your League ID here to fetch player data"
                     invalidText={this.state.error_msg}
                     placeholder={
-                      'Enter League ID e.g. ' + config['default_league_id']
+                      'Enter League ID e.g. ' + config.default_league_id
                     }
                   />
                   <br />
@@ -392,9 +394,9 @@ class LandingPage extends React.Component {
 
                   <Button
                     hasIconOnly
-                    renderIcon={HelpFilled}
+                    renderIcon={InformationSquareFilled}
                     iconDescription="Help"
-                    kind="ghost"
+                    kind="secondary"
                     size="sm"
                     href="https://allaboutfpl.com/2023/07/what-is-team-id-in-fpl-how-to-get-a-low-fpl-team-id/#:~:text=Login%20to%20your%20FPL%20account,is%20your%20FPL%20team%20ID"
                     target="_blank"
@@ -445,7 +447,11 @@ class LandingPage extends React.Component {
 
                   <Button
                     style={{ marginTop: '25px' }}
-                    kind="secondary"
+                    kind={
+                      isAuctionDone(this.state.player_map)
+                        ? 'primary'
+                        : 'secondary'
+                    }
                     size="sm"
                     href={`data:text/json;charset=utf-8,${encodeURIComponent(
                       JSON.stringify(
@@ -465,7 +471,12 @@ class LandingPage extends React.Component {
                 </Tile>
               </Column>
             </Grid>
-
+            <AuctionInformationModal
+              props={this.state}
+              updateModalState={value =>
+                this.setState({ ...this.state, modal_open: value })
+              }
+            />
             <br />
             <br />
             {this.state.static_data && (
@@ -485,14 +496,7 @@ class LandingPage extends React.Component {
                     onInputChange,
                     selectedRows,
                   }) => (
-                    <TableContainer
-                      title="Player List"
-                      description={
-                        <p style={{ marginTop: '5px' }}>
-                          CR = Creativity Rank, IR = Influence Rank, TR = Threat
-                          Rank, DR = Draft Rank
-                        </p>
-                      }>
+                    <TableContainer>
                       {Object.keys(this.state.player_map).length *
                         selectedRows.length >
                         0 && (
@@ -528,7 +532,7 @@ class LandingPage extends React.Component {
                                 hideSteppers
                                 id="selection-value"
                                 value={this.state.current_price}
-                                min={config['minimum_price']}
+                                min={config.minimum_price}
                                 max={computeRemainingMoney(
                                   this.state.player_map[this.state.selectedTeam]
                                 )}
@@ -610,6 +614,17 @@ class LandingPage extends React.Component {
                               </TableToolbarAction>
                             ))}
                           </TableToolbarMenu>
+                          <Button
+                            hasIconOnly
+                            iconDescription="Information"
+                            kind="ghost"
+                            renderIcon={InformationSquareFilled}
+                            onClick={() =>
+                              this.setState({ ...this.state, modal_open: true })
+                            }>
+                            {' '}
+                          </Button>
+
                           <Button
                             kind="secondary"
                             href={`data:text/json;charset=utf-8,${encodeURIComponent(
@@ -727,7 +742,7 @@ class LandingPage extends React.Component {
               {this.state.league_data && (
                 <>
                   {[...Array(3).keys()].map(item => (
-                    <Column lg={3} md={8} sm={4}>
+                    <Column key={item} lg={3} md={8} sm={4}>
                       {this.state.league_data.league_entries
                         .slice(
                           item *
