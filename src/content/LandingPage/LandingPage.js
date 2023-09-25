@@ -1,12 +1,13 @@
 import React from 'react';
 import GitHubButton from 'react-github-btn';
 
-import { Link as NewLink } from 'react-router-dom';
-import { Bee, Soccer, InformationSquareFilled, Add } from '@carbon/icons-react';
-import { TeamTile } from '../../components/BasicElements';
-
 import { LINKS } from './Links';
 import { AuctionInformationModal } from './InformationModal';
+import { TeamTile } from '../../components/BasicElements';
+import { PageHeader } from '../../components/PageHeader';
+
+import { Link as NewLink } from 'react-router-dom';
+import { Bee, Soccer, InformationSquareFilled, Add } from '@carbon/icons-react';
 
 import {
   initializeTeam,
@@ -56,7 +57,7 @@ const config = require('../../config.json');
 
 const completionChartOptions = {
   title: 'Auction Progress',
-  theme: 'g100',
+  theme: 'g90',
   height: '200px',
   gauge: {
     type: 'full',
@@ -343,434 +344,448 @@ class LandingPage extends React.Component {
     }));
 
     return (
-      <Theme theme="g90" style={{ height: '100vh' }}>
-        <Grid>
-          <Column lg={7} md={8} sm={4}>
-            <br />
-            <br />
-            <Grid>
-              <Column lg={4} md={4} sm={4}>
-                <Tile style={{ minHeight: '100%' }}>
-                  <NumberInput
-                    allowEmpty
-                    hideSteppers
-                    invalid={Boolean(this.state.error_msg)}
-                    value={this.state.league_id}
-                    onChange={e => {
-                      this.setState({
-                        ...this.state,
-                        league_id: e.target.value,
-                      });
-                    }}
-                    id="league_id"
-                    helperText="Enter your League ID here to fetch player data"
-                    invalidText={this.state.error_msg}
-                    placeholder={
-                      'Enter League ID e.g. ' + config.default_league_id
-                    }
-                  />
-                  <br />
-                  <Button
-                    onClick={this.fetchLeagueData.bind(this)}
-                    kind="primary"
-                    size="sm"
-                    style={{ marginRight: '10px' }}>
-                    Fetch
-                  </Button>
-
-                  <NewLink
-                    to={{
-                      pathname: '/leaderboard',
-                      state: { id: this.state.league_id },
-                    }}
-                    className="no-decoration-enforce">
+      <>
+        <PageHeader />
+        <Theme theme="g100" style={{ minHeight: '100vh' }}>
+          <Grid>
+            <Column lg={7} md={8} sm={4}>
+              <br />
+              <br />
+              <Grid>
+                <Column lg={4} md={4} sm={4}>
+                  <Tile style={{ minHeight: '100%' }}>
+                    <NumberInput
+                      allowEmpty
+                      hideSteppers
+                      invalid={Boolean(this.state.error_msg)}
+                      value={this.state.league_id}
+                      onChange={e => {
+                        this.setState({
+                          ...this.state,
+                          league_id: e.target.value,
+                        });
+                      }}
+                      id="league_id"
+                      helperText="Enter your League ID here to fetch player data"
+                      invalidText={this.state.error_msg}
+                      placeholder={
+                        'Enter League ID e.g. ' + config.default_league_id
+                      }
+                    />
+                    <br />
                     <Button
-                      kind="tertiary"
+                      onClick={this.fetchLeagueData.bind(this)}
+                      kind="primary"
                       size="sm"
                       style={{ marginRight: '10px' }}>
-                      Go To League
+                      Fetch
                     </Button>
-                  </NewLink>
 
-                  <Button
-                    hasIconOnly
-                    renderIcon={InformationSquareFilled}
-                    iconDescription="Help"
-                    kind="secondary"
-                    size="sm"
-                    href="https://allaboutfpl.com/2023/07/what-is-team-id-in-fpl-how-to-get-a-low-fpl-team-id/#:~:text=Login%20to%20your%20FPL%20account,is%20your%20FPL%20team%20ID"
-                    target="_blank"
-                  />
-                  <br />
-                  <br />
-                  <div style={{ width: '75%' }}>
-                    <FileUploaderDropContainer
-                      accept={['application/json']}
-                      labelText="Fetch to start new auction or upload saved auction file here."
-                      multiple
-                      name=""
-                      onAddFiles={this.uploadFile.bind(this)}
+                    <NewLink
+                      to={{
+                        pathname: '/leaderboard',
+                        state: { id: this.state.league_id },
+                      }}
+                      className="no-decoration-enforce">
+                      <Button
+                        kind="tertiary"
+                        size="sm"
+                        style={{ marginRight: '10px' }}>
+                        Go To League
+                      </Button>
+                    </NewLink>
+
+                    <Button
+                      hasIconOnly
+                      renderIcon={InformationSquareFilled}
+                      iconDescription="Help"
+                      kind="secondary"
+                      size="sm"
+                      href="https://allaboutfpl.com/2023/07/what-is-team-id-in-fpl-how-to-get-a-low-fpl-team-id/#:~:text=Login%20to%20your%20FPL%20account,is%20your%20FPL%20team%20ID"
+                      target="_blank"
                     />
-                    <div className="cds--file-container cds--file-container--drop" />
+                    <br />
+                    <br />
+                    <div style={{ width: '75%' }}>
+                      <FileUploaderDropContainer
+                        accept={['application/json']}
+                        labelText="Fetch to start new auction or upload saved auction file here."
+                        multiple
+                        name=""
+                        onAddFiles={this.uploadFile.bind(this)}
+                      />
+                      <div className="cds--file-container cds--file-container--drop" />
 
-                    {this.state.uploadedFile && (
-                      <Theme theme="g100">
-                        <FileUploaderItem
-                          invalid={this.state.invalid_upload}
-                          errorBody="Could not read auction data."
-                          errorSubject="ERROR"
-                          iconDescription="Delete file"
-                          name={this.state.uploadedFile}
-                          onDelete={() => {
-                            this.setState({
-                              ...this.state,
-                              league_id: '',
-                              league_data: null,
-                              player_map: {},
-                              player_list: this.state.static_data.elements,
-                              uploadedFile: null,
-                            });
-                          }}
-                          size="sm"
-                          status="edit"
-                        />
-                      </Theme>
-                    )}
-                  </div>
-                </Tile>
-              </Column>
-              <Column lg={3} md={4} sm={4}>
-                <Tile style={{ paddingLeft: '25px', minHeight: '100%' }}>
-                  <GaugeChart
-                    data={getAuctionProgress(this.state.player_map)}
-                    options={completionChartOptions}></GaugeChart>
-
-                  <Button
-                    style={{ marginTop: '25px' }}
-                    kind={
-                      isAuctionDone(this.state.player_map)
-                        ? 'primary'
-                        : 'secondary'
-                    }
-                    size="sm"
-                    href={`data:text/json;charset=utf-8,${encodeURIComponent(
-                      JSON.stringify(
-                        {
-                          league_id: this.state.league_id,
-                          static_data: this.state.static_data,
-                          player_map: this.state.player_map,
-                          league_data: this.state.league_data,
-                        },
-                        0,
-                        2
-                      )
-                    )}`}
-                    download={'data.json'}>
-                    Save
-                  </Button>
-                </Tile>
-              </Column>
-            </Grid>
-            <AuctionInformationModal
-              props={this.state}
-              updateModalState={value =>
-                this.setState({ ...this.state, modal_open: value })
-              }
-            />
-            <br />
-            <br />
-            {this.state.static_data && (
-              <>
-                <DataTable
-                  rows={rows}
-                  headers={infoTableHeaders}
-                  isSortable={true}
-                  render={({
-                    rows,
-                    headers,
-                    getHeaderProps,
-                    getRowProps,
-                    getSelectionProps,
-                    getBatchActionProps,
-                    getTableProps,
-                    onInputChange,
-                    selectedRows,
-                  }) => (
-                    <TableContainer>
-                      {Object.keys(this.state.player_map).length *
-                        selectedRows.length >
-                        0 && (
-                        <>
-                          <Dropdown
-                            style={{ paddingLeft: '15px' }}
-                            id="select-team"
-                            titleText="Select Team to Add Player"
-                            label="Select Team"
-                            type="inline"
-                            items={Object.keys(this.state.player_map).map(
-                              item => {
-                                return { id: item, text: item };
-                              }
-                            )}
-                            itemToString={item => (item ? item.text : '')}
-                            onChange={e =>
+                      {this.state.uploadedFile && (
+                        <Theme theme="g100">
+                          <FileUploaderItem
+                            invalid={this.state.invalid_upload}
+                            errorBody="Could not read auction data."
+                            errorSubject="ERROR"
+                            iconDescription="Delete file"
+                            name={this.state.uploadedFile}
+                            onDelete={() => {
                               this.setState({
                                 ...this.state,
-                                selectedTeam: e.selectedItem.id,
-                              })
-                            }
+                                league_id: '',
+                                league_data: null,
+                                player_map: {},
+                                player_list: this.state.static_data.elements,
+                                uploadedFile: null,
+                              });
+                            }}
+                            size="sm"
+                            status="edit"
                           />
-                          {this.state.selectedTeam && (
-                            <div
-                              style={{
-                                display: 'inline-table',
-                                marginBottom: '10px',
-                              }}>
-                              <NumberInput
-                                style={{ border: 'none' }}
-                                helperText="Price"
-                                hideSteppers
-                                id="selection-value"
-                                value={this.state.current_price}
-                                min={config.minimum_price}
-                                max={computeRemainingMoney(
-                                  this.state.player_map[this.state.selectedTeam]
-                                )}
-                                onChange={e =>
-                                  this.setState({
-                                    ...this.state,
-                                    current_price: e.target.value,
-                                  })
-                                }
-                                invalidText="Price is not valid"
-                              />
-                            </div>
-                          )}
-                        </>
+                        </Theme>
                       )}
-                      <TableToolbar>
-                        <TableBatchActions {...getBatchActionProps()}>
-                          {this.state.selectedTeam && (
-                            <TableBatchAction
-                              tabIndex={
-                                getBatchActionProps().shouldShowBatchActions
-                                  ? 0
-                                  : -1
+                    </div>
+                  </Tile>
+                </Column>
+                <Column lg={3} md={4} sm={4}>
+                  <Tile style={{ paddingLeft: '25px', minHeight: '100%' }}>
+                    <GaugeChart
+                      data={getAuctionProgress(this.state.player_map)}
+                      options={completionChartOptions}></GaugeChart>
+
+                    <Button
+                      style={{ marginTop: '25px' }}
+                      kind={
+                        isAuctionDone(this.state.player_map)
+                          ? 'primary'
+                          : 'secondary'
+                      }
+                      size="sm"
+                      href={`data:text/json;charset=utf-8,${encodeURIComponent(
+                        JSON.stringify(
+                          {
+                            league_id: this.state.league_id,
+                            static_data: this.state.static_data,
+                            player_map: this.state.player_map,
+                            league_data: this.state.league_data,
+                          },
+                          0,
+                          2
+                        )
+                      )}`}
+                      download={'data.json'}>
+                      Save
+                    </Button>
+                  </Tile>
+                </Column>
+              </Grid>
+              <AuctionInformationModal
+                props={this.state}
+                updateModalState={value =>
+                  this.setState({ ...this.state, modal_open: value })
+                }
+              />
+              <br />
+              <br />
+              {this.state.static_data && (
+                <>
+                  <DataTable
+                    rows={rows}
+                    headers={infoTableHeaders}
+                    isSortable={true}
+                    render={({
+                      rows,
+                      headers,
+                      getHeaderProps,
+                      getRowProps,
+                      getSelectionProps,
+                      getBatchActionProps,
+                      getTableProps,
+                      onInputChange,
+                      selectedRows,
+                    }) => (
+                      <TableContainer>
+                        {Object.keys(this.state.player_map).length *
+                          selectedRows.length >
+                          0 && (
+                          <>
+                            <Dropdown
+                              style={{ paddingLeft: '15px' }}
+                              id="select-team"
+                              titleText="Select Team to Add Player"
+                              label="Select Team"
+                              type="inline"
+                              items={Object.keys(this.state.player_map).map(
+                                item => {
+                                  return { id: item, text: item };
+                                }
+                              )}
+                              itemToString={item => (item ? item.text : '')}
+                              onChange={e =>
+                                this.setState({
+                                  ...this.state,
+                                  selectedTeam: e.selectedItem.id,
+                                })
                               }
-                              renderIcon={Add}
-                              onClick={e => this.addPlayer(selectedRows[0])}>
-                              Add
-                            </TableBatchAction>
-                          )}
-                        </TableBatchActions>
-
-                        <TableToolbarContent>
-                          <TableToolbarSearch
-                            placeholder="Search player by name"
-                            onChange={onInputChange}
-                          />
-                          <TableToolbarMenu renderIcon={Bee}>
-                            <TableToolbarAction
-                              key="all_teams"
-                              onClick={() => {
-                                this.filterPlayers({ type: 'team', value: 0 });
-                              }}>
-                              All
-                            </TableToolbarAction>
-                            {this.state.static_data.teams.map(item => (
-                              <TableToolbarAction
-                                key={item.short_name}
-                                onClick={e => {
-                                  this.filterPlayers({
-                                    type: 'team',
-                                    value: item.id,
-                                  });
+                            />
+                            {this.state.selectedTeam && (
+                              <div
+                                style={{
+                                  display: 'inline-table',
+                                  marginBottom: '10px',
                                 }}>
-                                {item.name}
-                              </TableToolbarAction>
-                            ))}
-                          </TableToolbarMenu>
-                          <TableToolbarMenu renderIcon={Soccer}>
-                            <TableToolbarAction
-                              key="all_positions"
-                              onClick={() => {
-                                this.filterPlayers({
-                                  type: 'element_type',
-                                  value: 0,
-                                });
-                              }}>
-                              All
-                            </TableToolbarAction>
-                            {this.state.static_data.element_types.map(item => (
-                              <TableToolbarAction
-                                key={item.singular_name_short}
-                                onClick={() => {
-                                  this.filterPlayers({
-                                    type: 'element_type',
-                                    value: item.id,
-                                  });
-                                }}>
-                                {item.singular_name}
-                              </TableToolbarAction>
-                            ))}
-                          </TableToolbarMenu>
-                          <Button
-                            hasIconOnly
-                            iconDescription="Information"
-                            kind="ghost"
-                            renderIcon={InformationSquareFilled}
-                            onClick={() =>
-                              this.setState({ ...this.state, modal_open: true })
-                            }>
-                            {' '}
-                          </Button>
-
-                          <Button
-                            kind="secondary"
-                            href={`data:text/json;charset=utf-8,${encodeURIComponent(
-                              JSON.stringify(this.state.static_data, 0, 2)
-                            )}`}
-                            download={'data.json'}>
-                            Export Data
-                          </Button>
-                        </TableToolbarContent>
-                      </TableToolbar>
-                      <Table size="sm">
-                        <TableHead>
-                          <TableRow>
-                            <TableHeader></TableHeader>
-                            {headers.map(header => (
-                              <TableHeader
-                                key={header.key}
-                                {...getHeaderProps({ header })}>
-                                {header.header}
-                              </TableHeader>
-                            ))}
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {rows
-                            .slice(
-                              this.state.firstRowIndex,
-                              this.state.firstRowIndex +
-                                this.state.currentPageSize
-                            )
-                            .map(row => (
-                              <TableRow {...getRowProps({ row })}>
-                                <TableSelectRow
-                                  {...getSelectionProps({ row })}
+                                <NumberInput
+                                  style={{ border: 'none' }}
+                                  helperText="Price"
+                                  hideSteppers
+                                  id="selection-value"
+                                  value={this.state.current_price}
+                                  min={config.minimum_price}
+                                  max={computeRemainingMoney(
+                                    this.state.player_map[
+                                      this.state.selectedTeam
+                                    ]
+                                  )}
                                   onChange={e =>
                                     this.setState({
                                       ...this.state,
-                                      selectedTeam: null,
-                                      current_price: 0,
+                                      current_price: e.target.value,
                                     })
                                   }
+                                  invalidText="Price is not valid"
                                 />
-                                {row.cells.map(cell => (
-                                  <TableCell key={cell.id}>
-                                    {cell.value}
-                                  </TableCell>
-                                ))}
-                              </TableRow>
-                            ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  )}
-                />
-                <Pagination
-                  style={{ width: '100%' }}
-                  totalItems={rows.length}
-                  backwardText="Previous page"
-                  forwardText="Next page"
-                  pageSize={this.state.currenPageSize}
-                  pageSizes={[this.state.currentPageSize, 20, 30, 50]}
-                  itemsPerPageText="Items per page"
-                  onChange={({ page, pageSize }) => {
-                    this.setState({
-                      ...this.state,
-                      currentPageSize: pageSize,
-                      firstRowIndex: pageSize * (page - 1),
-                    });
-                  }}
-                />
-                <br />
-                <br />
-              </>
-            )}
+                              </div>
+                            )}
+                          </>
+                        )}
+                        <TableToolbar>
+                          <TableBatchActions {...getBatchActionProps()}>
+                            {this.state.selectedTeam && (
+                              <TableBatchAction
+                                tabIndex={
+                                  getBatchActionProps().shouldShowBatchActions
+                                    ? 0
+                                    : -1
+                                }
+                                renderIcon={Add}
+                                onClick={e => this.addPlayer(selectedRows[0])}>
+                                Add
+                              </TableBatchAction>
+                            )}
+                          </TableBatchActions>
 
-            {LINKS.map((item, id) => (
-              <ClickableTile
-                key={id}
-                href={item.url}
-                target="_blank"
-                className="reference-tile">
-                <img
-                  alt={item.name}
-                  src={generateUrl(
-                    'images/' + item.name.toLowerCase().replaceAll(' ', '-')
-                  )}
-                />
-              </ClickableTile>
-            ))}
+                          <TableToolbarContent>
+                            <TableToolbarSearch
+                              placeholder="Search player by name"
+                              onChange={onInputChange}
+                            />
+                            <TableToolbarMenu renderIcon={Bee}>
+                              <TableToolbarAction
+                                key="all_teams"
+                                onClick={() => {
+                                  this.filterPlayers({
+                                    type: 'team',
+                                    value: 0,
+                                  });
+                                }}>
+                                All
+                              </TableToolbarAction>
+                              {this.state.static_data.teams.map(item => (
+                                <TableToolbarAction
+                                  key={item.short_name}
+                                  onClick={e => {
+                                    this.filterPlayers({
+                                      type: 'team',
+                                      value: item.id,
+                                    });
+                                  }}>
+                                  {item.name}
+                                </TableToolbarAction>
+                              ))}
+                            </TableToolbarMenu>
+                            <TableToolbarMenu renderIcon={Soccer}>
+                              <TableToolbarAction
+                                key="all_positions"
+                                onClick={() => {
+                                  this.filterPlayers({
+                                    type: 'element_type',
+                                    value: 0,
+                                  });
+                                }}>
+                                All
+                              </TableToolbarAction>
+                              {this.state.static_data.element_types.map(
+                                item => (
+                                  <TableToolbarAction
+                                    key={item.singular_name_short}
+                                    onClick={() => {
+                                      this.filterPlayers({
+                                        type: 'element_type',
+                                        value: item.id,
+                                      });
+                                    }}>
+                                    {item.singular_name}
+                                  </TableToolbarAction>
+                                )
+                              )}
+                            </TableToolbarMenu>
+                            <Button
+                              hasIconOnly
+                              iconDescription="Information"
+                              kind="ghost"
+                              renderIcon={InformationSquareFilled}
+                              onClick={() =>
+                                this.setState({
+                                  ...this.state,
+                                  modal_open: true,
+                                })
+                              }>
+                              {' '}
+                            </Button>
 
-            <br />
-            <br />
-            <GitHubButton
-              href="https://github.com/TathagataChakraborti/victims-of-weak-teams"
-              data-size="small"
-              data-show-count="true"
-              aria-label="Stars on GitHub">
-              Star
-            </GitHubButton>
-          </Column>
-          <Column lg={9} md={8} sm={4}>
-            <br />
-            <br />
-
-            {this.state.add_error_msg && (
-              <InlineNotification
-                style={{ marginBottom: '20px' }}
-                lowContrast
-                title="ERROR"
-                subtitle={this.state.add_error_msg}
-              />
-            )}
-
-            <Grid>
-              {this.state.league_data && (
-                <>
-                  {[...Array(3).keys()].map(item => (
-                    <Column key={item} lg={3} md={8} sm={4}>
-                      {this.state.league_data.league_entries
-                        .slice(
-                          item *
-                            Math.floor(
-                              this.state.league_data.league_entries.length / 3
-                            ),
-                          (item + 1) *
-                            Math.floor(
-                              this.state.league_data.league_entries.length / 3
-                            )
-                        )
-                        .filter(item => item.entry_name)
-                        .map((item, id) => (
-                          <TeamTile
-                            key={id}
-                            team_info={item}
-                            team_data={this.state.player_map[item.entry_name]}
-                            removePlayer={this.removePlayer.bind(this)}
-                          />
-                        ))}
-                    </Column>
-                  ))}
+                            <Button
+                              kind="secondary"
+                              href={`data:text/json;charset=utf-8,${encodeURIComponent(
+                                JSON.stringify(this.state.static_data, 0, 2)
+                              )}`}
+                              download={'data.json'}>
+                              Export Data
+                            </Button>
+                          </TableToolbarContent>
+                        </TableToolbar>
+                        <Table size="sm">
+                          <TableHead>
+                            <TableRow>
+                              <TableHeader></TableHeader>
+                              {headers.map(header => (
+                                <TableHeader
+                                  key={header.key}
+                                  {...getHeaderProps({ header })}>
+                                  {header.header}
+                                </TableHeader>
+                              ))}
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {rows
+                              .slice(
+                                this.state.firstRowIndex,
+                                this.state.firstRowIndex +
+                                  this.state.currentPageSize
+                              )
+                              .map(row => (
+                                <TableRow {...getRowProps({ row })}>
+                                  <TableSelectRow
+                                    {...getSelectionProps({ row })}
+                                    onChange={e =>
+                                      this.setState({
+                                        ...this.state,
+                                        selectedTeam: null,
+                                        current_price: 0,
+                                      })
+                                    }
+                                  />
+                                  {row.cells.map(cell => (
+                                    <TableCell key={cell.id}>
+                                      {cell.value}
+                                    </TableCell>
+                                  ))}
+                                </TableRow>
+                              ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    )}
+                  />
+                  <Pagination
+                    style={{ width: '100%' }}
+                    totalItems={rows.length}
+                    backwardText="Previous page"
+                    forwardText="Next page"
+                    pageSize={this.state.currenPageSize}
+                    pageSizes={[this.state.currentPageSize, 20, 30, 50]}
+                    itemsPerPageText="Items per page"
+                    onChange={({ page, pageSize }) => {
+                      this.setState({
+                        ...this.state,
+                        currentPageSize: pageSize,
+                        firstRowIndex: pageSize * (page - 1),
+                      });
+                    }}
+                  />
+                  <br />
+                  <br />
                 </>
               )}
-            </Grid>
-          </Column>
-        </Grid>
-      </Theme>
+
+              {LINKS.map((item, id) => (
+                <ClickableTile
+                  key={id}
+                  href={item.url}
+                  target="_blank"
+                  className="reference-tile">
+                  <img
+                    alt={item.name}
+                    src={generateUrl(
+                      'images/' + item.name.toLowerCase().replaceAll(' ', '-')
+                    )}
+                  />
+                </ClickableTile>
+              ))}
+
+              <br />
+              <br />
+              <GitHubButton
+                href="https://github.com/TathagataChakraborti/victims-of-weak-teams"
+                data-size="small"
+                data-show-count="true"
+                aria-label="Stars on GitHub">
+                Star
+              </GitHubButton>
+              <br />
+            </Column>
+            <Column lg={9} md={8} sm={4}>
+              <br />
+              <br />
+
+              {this.state.add_error_msg && (
+                <InlineNotification
+                  style={{ marginBottom: '20px' }}
+                  lowContrast
+                  title="ERROR"
+                  subtitle={this.state.add_error_msg}
+                />
+              )}
+
+              <Grid>
+                {this.state.league_data && (
+                  <>
+                    {[...Array(3).keys()].map(item => (
+                      <Column key={item} lg={3} md={8} sm={4}>
+                        {this.state.league_data.league_entries
+                          .slice(
+                            item *
+                              Math.floor(
+                                this.state.league_data.league_entries.length / 3
+                              ),
+                            (item + 1) *
+                              Math.floor(
+                                this.state.league_data.league_entries.length / 3
+                              )
+                          )
+                          .filter(item => item.entry_name)
+                          .map((item, id) => (
+                            <TeamTile
+                              key={id}
+                              team_info={item}
+                              team_data={this.state.player_map[item.entry_name]}
+                              removePlayer={this.removePlayer.bind(this)}
+                            />
+                          ))}
+                      </Column>
+                    ))}
+                  </>
+                )}
+              </Grid>
+            </Column>
+          </Grid>
+        </Theme>
+      </>
     );
   }
 }

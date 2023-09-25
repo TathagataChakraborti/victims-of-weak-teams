@@ -1,5 +1,8 @@
 import React from 'react';
 import { CaretUp, CaretDown, Subtract } from '@carbon/icons-react';
+import { generateLeagueAPI } from '../../components/Info';
+import { PageHeaderExtended } from '../../components/PageHeader';
+import { getHomeName } from '../../components/PageHeader/Outline';
 import {
   Theme,
   Grid,
@@ -220,23 +223,29 @@ class LeaguePage extends React.Component {
       ? props.location.state.id
       : props.location.hash.replace('#', '');
 
-    league_id = league_id ? league_id : config['default_league_id'];
+    league_id = league_id ? league_id : config.default_league_id;
 
     this.state = {
       league_id: league_id,
       league_not_found: !Boolean(league_id),
       league_data: null,
       trend_index: 0,
+      current_tab: getHomeName(),
     };
   }
 
+  onClickTab = tabName => {
+    this.setState({
+      ...this.state,
+      current_tab: tabName,
+      [this.state.current]: false,
+      [tabName]: true,
+    });
+  };
+
   componentDidMount = () => {
     if (this.state.league_id) {
-      const url = config['league_api'].replace(
-        'LEAGUE_ID',
-        this.state.league_id
-      );
-      fetch(config['proxy_url'] + url, {
+      fetch(config.proxy_url + generateLeagueAPI(this.state.league_id), {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -294,7 +303,7 @@ class LeaguePage extends React.Component {
               }
             );
 
-            // fetch(config['proxy_url'] + config['static_api'], {
+            // fetch(config.proxy_url + config.static_api, {
             //   method: 'GET',
             //   headers: {
             //     'Content-Type': 'application/json',
@@ -364,122 +373,154 @@ class LeaguePage extends React.Component {
     });
 
     return (
-      <Theme theme="g10" style={{ minHeight: '100vh' }}>
-        <br />
-        <br />
+      <>
+        <PageHeaderExtended
+          currentTab={this.state.current_tab}
+          onClickTab={this.onClickTab.bind(this)}
+        />
+        <Theme theme="g10" style={{ minHeight: '100vh' }}>
+          <br />
+          <br />
 
-        <Grid>
-          <Column lg={6} md={8} sm={4} className="bottom-space">
-            {this.state.league_not_found && (
-              <ToastNotification
-                lowContrast
-                role="status"
-                caption={'ID: ' + this.state.league_id}
-                timeout={0}
-                title="Error"
-                subtitle="League not found!"
-              />
-            )}
+          <Grid>
+            <Column
+              className="bottom-space"
+              sm={{
+                start: 1,
+                end: 5,
+              }}
+              md={{
+                start: 1,
+                end: 9,
+              }}
+              lg={{
+                start: 4,
+                end: 12,
+              }}>
+              {this.state.league_not_found && (
+                <ToastNotification
+                  lowContrast
+                  role="status"
+                  caption={'ID: ' + this.state.league_id}
+                  timeout={0}
+                  title="Error"
+                  subtitle="League not found!"
+                />
+              )}
 
-            {this.state.league_data && (
-              <DataTable
-                rows={rows}
-                headers={leaderboardHeaders}
-                isSortable={true}
-                render={({
-                  rows,
-                  headers,
-                  getHeaderProps,
-                  getRowProps,
-                  getTableProps,
-                }) => (
-                  <TableContainer
-                    title={this.state.league_data.league.name}
-                    description={
-                      <>
-                        <div className="table-tag">
-                          <Tag className="team-tag">League ID</Tag>
-                          <Tag type="purple" className="team-tag">
-                            {this.state.league_id}
-                          </Tag>
-                        </div>
-                        <div className="table-tag">
-                          <Tag className="team-tag">
-                            Gameweek {getCurrentGW(this.state.league_data)}
-                          </Tag>
-                          <Tag
-                            type={
-                              getCurrentGWStatus(this.state.league_data)
-                                ? 'green'
-                                : 'magenta'
-                            }
-                            className="team-tag">
-                            {getCurrentGWStatus(this.state.league_data)
-                              ? 'DONE'
-                              : 'LIVE'}
-                          </Tag>
-                        </div>
-                      </>
-                    }>
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          {headers.map(header => (
-                            <TableHeader
-                              key={header.key}
-                              {...getHeaderProps({ header })}>
-                              {header.header}
-                            </TableHeader>
-                          ))}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {rows.map(row => (
-                          <TableRow key={row.id} {...getRowProps({ row })}>
-                            {row.cells.map((cell, id) => (
-                              <TableCell key={id}>{cell.value}</TableCell>
+              {this.state.league_data && (
+                <DataTable
+                  rows={rows}
+                  headers={leaderboardHeaders}
+                  isSortable={true}
+                  render={({
+                    rows,
+                    headers,
+                    getHeaderProps,
+                    getRowProps,
+                    getTableProps,
+                  }) => (
+                    <TableContainer
+                      title={this.state.league_data.league.name}
+                      description={
+                        <>
+                          <div className="table-tag">
+                            <Tag className="team-tag">League ID</Tag>
+                            <Tag type="purple" className="team-tag">
+                              {this.state.league_id}
+                            </Tag>
+                          </div>
+                          <div className="table-tag">
+                            <Tag className="team-tag">
+                              Gameweek {getCurrentGW(this.state.league_data)}
+                            </Tag>
+                            <Tag
+                              type={
+                                getCurrentGWStatus(this.state.league_data)
+                                  ? 'green'
+                                  : 'magenta'
+                              }
+                              className="team-tag">
+                              {getCurrentGWStatus(this.state.league_data)
+                                ? 'DONE'
+                                : 'LIVE'}
+                            </Tag>
+                          </div>
+                        </>
+                      }>
+                      <Table>
+                        <TableHead>
+                          <TableRow>
+                            {headers.map(header => (
+                              <TableHeader
+                                key={header.key}
+                                {...getHeaderProps({ header })}>
+                                {header.header}
+                              </TableHeader>
                             ))}
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                )}
-              />
-            )}
-          </Column>
-          <Column lg={10} md={8} sm={4} className="bottom-space">
-            <Grid>
-              <Column lg={4} md={4} sm={2}>
-                <ContentSwitcher
-                  size="sm"
-                  onChange={e => {
-                    this.setState({ ...this.state, trend_index: e.index });
-                  }}>
-                  <Switch name="cumulative" text="Cumulative" />
-                  <Switch name="average" text="Average" />
-                </ContentSwitcher>
-                <br />
-                <br />
-              </Column>
-            </Grid>
-            {this.state.league_data && this.state.trend_index === 0 && (
-              <LineChart
-                data={generateTrendData(this.state.league_data)}
-                options={
-                  this.state.trend_options_cumulative || trendOptions
-                }></LineChart>
-            )}
-            {this.state.league_data && this.state.trend_index === 1 && (
-              <LineChart
-                data={generateTrendDataAverage(this.state.league_data)}
-                options={
-                  this.state.trend_options_average || trendOptions
-                }></LineChart>
-            )}
-          </Column>
-        </Grid>
-      </Theme>
+                        </TableHead>
+                        <TableBody>
+                          {rows.map(row => (
+                            <TableRow key={row.id} {...getRowProps({ row })}>
+                              {row.cells.map((cell, id) => (
+                                <TableCell key={id}>{cell.value}</TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  )}
+                />
+              )}
+            </Column>
+            <Column
+              className="bottom-space"
+              sm={{
+                start: 1,
+                end: 5,
+              }}
+              md={{
+                start: 1,
+                end: 9,
+              }}
+              lg={{
+                start: 4,
+                end: 17,
+              }}>
+              <Grid>
+                <Column lg={4} md={4} sm={2}>
+                  <ContentSwitcher
+                    size="sm"
+                    onChange={e => {
+                      this.setState({ ...this.state, trend_index: e.index });
+                    }}>
+                    <Switch name="cumulative" text="Cumulative" />
+                    <Switch name="average" text="Average" />
+                  </ContentSwitcher>
+                  <br />
+                  <br />
+                </Column>
+              </Grid>
+              {this.state.league_data && this.state.trend_index === 0 && (
+                <LineChart
+                  data={generateTrendData(this.state.league_data)}
+                  options={
+                    this.state.trend_options_cumulative || trendOptions
+                  }></LineChart>
+              )}
+              {this.state.league_data && this.state.trend_index === 1 && (
+                <LineChart
+                  data={generateTrendDataAverage(this.state.league_data)}
+                  options={
+                    this.state.trend_options_average || trendOptions
+                  }></LineChart>
+              )}
+            </Column>
+          </Grid>
+        </Theme>
+      </>
     );
   }
 }
