@@ -1,5 +1,6 @@
 import React from 'react';
 import { CaretUp, CaretDown, Subtract } from '@carbon/icons-react';
+import { InfoTile } from '../../components/BasicElements';
 import { generateLeagueAPI } from '../../components/Info';
 import { PageHeaderExtended } from '../../components/PageHeader';
 import { getHomeName } from '../../components/PageHeader/Outline';
@@ -21,7 +22,7 @@ import {
   Switch,
 } from '@carbon/react';
 
-import { LineChart } from '@carbon/charts-react';
+import { LineChart, AreaChart } from '@carbon/charts-react';
 import '@carbon/charts/styles.css';
 
 const config = require('../../config.json');
@@ -157,13 +158,67 @@ const generateTrendDataAverage = league_data => {
     .forEach(entry => {
       const all_points_array = getPointsArrayFromID(entry.id, league_data)
         .filter(item => item.gameweek)
-        .map((item, id) => {
+        .map(item => {
           return {
             group: entry.entry_name,
-            gameweek: id + 1,
-            points: getTotalPoints(entry.id, league_data, id + 1) / (id + 1),
+            gameweek: item.gameweek,
+            points:
+              getTotalPoints(entry.id, league_data, item.gameweek) /
+              item.gameweek,
           };
         });
+
+      data = data.concat(all_points_array);
+    });
+
+  return data;
+};
+
+const generateTrendDataAverageDifferential = league_data => {
+  var data = [];
+  const average_team_id = league_data.league_entries.find(
+    entry => !entry.entry_name
+  ).id;
+
+  league_data.league_entries.forEach(entry => {
+    const all_points_array = getPointsArrayFromID(entry.id, league_data).map(
+      (item, id) => {
+        const average_team_points = getTotalPoints(
+          average_team_id,
+          league_data,
+          item.gameweek
+        );
+        return {
+          group: entry.entry_name ? entry.entry_name : 'AVERAGE',
+          gameweek: item.gameweek,
+          points:
+            getTotalPoints(entry.id, league_data, item.gameweek) -
+            average_team_points,
+        };
+      }
+    );
+
+    data = data.concat(all_points_array);
+  });
+
+  return data;
+};
+
+const generateTrendDataPosition = league_data => {
+  var data = [];
+
+  league_data.league_entries
+    .filter(entry => entry.entry_name)
+    .forEach(entry => {
+      const all_points_array = getPointsArrayFromID(entry.id, league_data).map(
+        item => {
+          return {
+            group: entry.entry_name,
+            gameweek: item.gameweek,
+            points: getPosition(entry.id, league_data, item.gameweek),
+          };
+        }
+      );
 
       data = data.concat(all_points_array);
     });
@@ -178,11 +233,33 @@ const generateTrendData = league_data => {
     .filter(entry => entry.entry_name)
     .forEach(entry => {
       const all_points_array = getPointsArrayFromID(entry.id, league_data).map(
-        (item, id) => {
+        item => {
           return {
             group: entry.entry_name,
-            gameweek: id,
-            points: getTotalPoints(entry.id, league_data, id),
+            gameweek: item.gameweek,
+            points: getTotalPoints(entry.id, league_data, item.gameweek),
+          };
+        }
+      );
+
+      data = data.concat(all_points_array);
+    });
+
+  return data;
+};
+
+const generateTrendDataDaily = league_data => {
+  var data = [];
+
+  league_data.league_entries
+    .filter(entry => entry.entry_name)
+    .forEach(entry => {
+      const all_points_array = getPointsArrayFromID(entry.id, league_data).map(
+        item => {
+          return {
+            group: entry.entry_name,
+            gameweek: item.gameweek,
+            points: getGameweekPoints(entry.id, league_data, item.gameweek),
           };
         }
       );
@@ -229,7 +306,7 @@ class LeaguePage extends React.Component {
       league_id: league_id,
       league_not_found: !Boolean(league_id),
       league_data: null,
-      trend_index: 0,
+      trend_index: 1,
       current_tab: getHomeName(),
     };
   }
@@ -271,12 +348,20 @@ class LeaguePage extends React.Component {
                     this.state.league_data
                   ).map(item => item.points);
 
+                  const average_diff_data = generateTrendDataAverageDifferential(
+                    this.state.league_data
+                  ).map(item => item.points);
+
+                  const daily_data = generateTrendDataDaily(
+                    this.state.league_data
+                  ).map(item => item.points);
+
                   var trend_options_cum = JSON.parse(
                     JSON.stringify(trendOptions)
                   );
                   trend_options_cum.axes.bottom.domain = [
                     0,
-                    this.state.league_data.standings[0].matches_played,
+                    getCurrentGW(this.state.league_data),
                   ];
                   trend_options_cum.axes.height =
                     (Object.keys(data['player_map']).length * 80).toString() +
@@ -294,29 +379,45 @@ class LeaguePage extends React.Component {
                     Math.max(...average_data),
                   ];
 
+                  var trend_options_average_differential = JSON.parse(
+                    JSON.stringify(trend_options_avg)
+                  );
+
+                  trend_options_average_differential.axes.left.domain = [
+                    Math.min(...average_diff_data),
+                    Math.max(...average_diff_data),
+                  ];
+                  trend_options_average_differential.axes.bottom.domain = [
+                    0,
+                    getCurrentGW(this.state.league_data),
+                  ];
+
+                  var trend_position = JSON.parse(
+                    JSON.stringify(trend_options_avg)
+                  );
+                  trend_position.axes.left.domain = [5, 4, 3, 2, 1];
+                  trend_position.axes.left.scaleType = 'labels';
+
+                  var trend_daily = JSON.parse(
+                    JSON.stringify(trend_options_avg)
+                  );
+                  trend_daily.axes.left.domain = [0, Math.max(...daily_data)];
+                  trend_daily.axes.bottom.domain = [
+                    1,
+                    getCurrentGW(this.state.league_data),
+                  ];
+
                   this.setState({
                     ...trendOptions,
                     trend_options_cumulative: trend_options_cum,
                     trend_options_average: trend_options_avg,
+                    trend_options_average_differential: trend_options_average_differential,
+                    trend_position: trend_position,
+                    trend_daily: trend_daily,
                   });
                 });
               }
             );
-
-            // fetch(config.proxy_url + config.static_api, {
-            //   method: 'GET',
-            //   headers: {
-            //     'Content-Type': 'application/json',
-            //     'Access-Control-Allow-Origin': '*',
-            //   },
-            // })
-            //   .then(res => res.json())
-            //   .then(data => {
-            //     this.setState({
-            //       ...this.state,
-            //       new_data: data,
-            //     });
-            //   });
           } else {
             this.setState({
               ...this.state,
@@ -474,7 +575,62 @@ class LeaguePage extends React.Component {
                   )}
                 />
               )}
+
+              <br />
+              <br />
+
+              <ContentSwitcher
+                size="sm"
+                selectedIndex={this.state.trend_index}
+                onChange={e => {
+                  this.setState({ ...this.state, trend_index: e.index });
+                }}>
+                <Switch name="cumulative" text="Cumulative" />
+                <Switch name="position" text="Position" />
+                <Switch name="daily" text="Daily" />
+                <Switch name="average" text="Average" />
+                <Switch name="differential" text="Differential" />
+              </ContentSwitcher>
+              <br />
+              <br />
+              {this.state.league_data && this.state.trend_index === 0 && (
+                <LineChart
+                  data={generateTrendData(this.state.league_data)}
+                  options={
+                    this.state.trend_options_cumulative || trendOptions
+                  }></LineChart>
+              )}
+              {this.state.league_data && this.state.trend_index === 1 && (
+                <LineChart
+                  data={generateTrendDataPosition(this.state.league_data)}
+                  options={
+                    this.state.trend_position || trendOptions
+                  }></LineChart>
+              )}
+              {this.state.league_data && this.state.trend_index === 2 && (
+                <AreaChart
+                  data={generateTrendDataDaily(this.state.league_data)}
+                  options={this.state.trend_daily || trendOptions}></AreaChart>
+              )}
+              {this.state.league_data && this.state.trend_index === 3 && (
+                <LineChart
+                  data={generateTrendDataAverage(this.state.league_data)}
+                  options={
+                    this.state.trend_options_average || trendOptions
+                  }></LineChart>
+              )}
+              {this.state.league_data && this.state.trend_index === 4 && (
+                <LineChart
+                  data={generateTrendDataAverageDifferential(
+                    this.state.league_data
+                  )}
+                  options={
+                    this.state.trend_options_average_differential ||
+                    trendOptions
+                  }></LineChart>
+              )}
             </Column>
+
             <Column
               className="bottom-space"
               sm={{
@@ -486,37 +642,10 @@ class LeaguePage extends React.Component {
                 end: 9,
               }}
               lg={{
-                start: 4,
+                start: 12,
                 end: 17,
               }}>
-              <Grid>
-                <Column lg={4} md={4} sm={2}>
-                  <ContentSwitcher
-                    size="sm"
-                    onChange={e => {
-                      this.setState({ ...this.state, trend_index: e.index });
-                    }}>
-                    <Switch name="cumulative" text="Cumulative" />
-                    <Switch name="average" text="Average" />
-                  </ContentSwitcher>
-                  <br />
-                  <br />
-                </Column>
-              </Grid>
-              {this.state.league_data && this.state.trend_index === 0 && (
-                <LineChart
-                  data={generateTrendData(this.state.league_data)}
-                  options={
-                    this.state.trend_options_cumulative || trendOptions
-                  }></LineChart>
-              )}
-              {this.state.league_data && this.state.trend_index === 1 && (
-                <LineChart
-                  data={generateTrendDataAverage(this.state.league_data)}
-                  options={
-                    this.state.trend_options_average || trendOptions
-                  }></LineChart>
-              )}
+              <InfoTile props={{ title: 'News', body: '' }} />
             </Column>
           </Grid>
         </Theme>

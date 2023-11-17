@@ -12,6 +12,16 @@ import {
 
 const config = require('../../config.json');
 
+const InfoTile = props => (
+  <ContainedList
+    size="xl"
+    label={props.props.title}
+    kind="disclosed"
+    className="info-tile">
+    <Tile className="info-tile-container">{props.props.body}</Tile>
+  </ContainedList>
+);
+
 class TeamTile extends React.Component {
   constructor(props) {
     super(props);
@@ -131,4 +141,4 @@ class TeamTile extends React.Component {
   }
 }
 
-export { TeamTile };
+export { TeamTile, InfoTile };
