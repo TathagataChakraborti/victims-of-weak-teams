@@ -14,7 +14,7 @@ class App extends Component {
         <Content>
           <Switch>
             <Route exact path="/" component={LandingPage} />
-            <Route exact path="/leaderboard" component={LeaguePage} />
+            {/* <Route exact path="/leaderboard" component={LeaguePage} /> */}
           </Switch>
         </Content>
       </>

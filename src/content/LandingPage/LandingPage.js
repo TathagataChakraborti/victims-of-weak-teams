@@ -189,7 +189,7 @@ class LandingPage extends React.Component {
                   player_map[item.entry_name] = initializeTeam();
                 });
 
-              this.setState({
+          this.setState({
                 ...this.state,
                 error_msg: '',
                 league_data: data,
@@ -761,11 +761,11 @@ class LandingPage extends React.Component {
                           .slice(
                             item *
                               Math.floor(
-                                this.state.league_data.league_entries.length / 3
+                                this.state.league_data.league_entries.length < 3 ? 1 : this.state.league_data.league_entries.length / 3
                               ),
                             (item + 1) *
                               Math.floor(
-                                this.state.league_data.league_entries.length / 3
+                                this.state.league_data.league_entries.length < 3 ? 1 : this.state.league_data.league_entries.length / 3
                               )
                           )
                           .filter(item => item.entry_name)

@@ -1,6 +1,6 @@
 {
-  "default_league_id": "81463",
-  "proxy_url": "https://cors-proxy.fringe.zone/",
+  "default_league_id": "40957",
+  "proxy_url": "https://cors-anywhere.com/",
   "static_api": "https://draft.premierleague.com/api/bootstrap-static",
   "league_api": "https://draft.premierleague.com/api/league/{LEAGUE_ID}/details",
   "total_budget": 100,
