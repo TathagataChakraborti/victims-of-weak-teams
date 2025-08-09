@@ -117,7 +117,9 @@ class TeamTile extends React.Component {
                           iconDescription="Remove from team"
                           hasIconOnly
                         />
-                        <span style={{ fontSize: 'smaller' }}>
+                        <span
+                          className="trimmed-name"
+                          style={{ fontSize: 'smaller' }}>
                           {player.name}
                         </span>
                         <Tag

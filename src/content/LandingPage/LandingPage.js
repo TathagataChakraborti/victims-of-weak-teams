@@ -48,6 +48,7 @@ import {
   ClickableTile,
   FileUploaderDropContainer,
   FileUploaderItem,
+  TextInput,
 } from '@carbon/react';
 
 import { GaugeChart } from '@carbon/charts-react';
@@ -76,7 +77,7 @@ const infoTableHeaders = [
 
 const invalid_league_id_msg = 'Please provide valid league ID';
 const makePlayerName = player_object =>
-  player_object.first_name + ' ' + player_object.second_name;
+  (player_object.first_name + ' ' + player_object.second_name).trim();
 
 const getAverage = arr =>
   arr.length ? arr.reduce((total, item) => total + item, 0) / arr.length : 0;
@@ -108,10 +109,11 @@ class LandingPage extends React.Component {
     this.state = {
       league_id: '',
       player_search: '',
+      selected_player: '',
       static_data: null,
       player_list: [],
       current_type: '',
-      currentPageSize: 10,
+      currentPageSize: 8,
       firstRowIndex: 0,
       selectedTeam: null,
       current_price: config.minimum_price,
@@ -236,7 +238,7 @@ class LandingPage extends React.Component {
           .replace('TEAM', this.state.selectedTeam),
       });
     } else {
-      const name = selectedItem.cells[1].value;
+      const name = this.state.selected_player;
       const new_item = {
         name: name,
         pos: position,
@@ -269,11 +271,12 @@ class LandingPage extends React.Component {
       );
     });
 
+    var new_player_list = this.state.player_list;
     const cached_item = this.state.static_data.elements.find(
       item => makePlayerName(item) === player_name
     );
-    var new_player_list = this.state.player_list;
-    new_player_list.push(cached_item);
+
+    if (cached_item) new_player_list.push(cached_item);
 
     this.setState({
       ...this.state,
@@ -417,7 +420,7 @@ class LandingPage extends React.Component {
                       <div className="cds--file-container cds--file-container--drop" />
 
                       {this.state.uploadedFile && (
-                        <Theme theme="g100">
+                        <Theme theme="g90">
                           <FileUploaderItem
                             invalid={this.state.invalid_upload}
                             errorBody="Could not read auction data."
@@ -519,6 +522,8 @@ class LandingPage extends React.Component {
                               onChange={e =>
                                 this.setState({
                                   ...this.state,
+                                  selected_player:
+                                    selectedRows[0].cells[1].value,
                                   selectedTeam: e.selectedItem.id,
                                 })
                               }
@@ -526,12 +531,22 @@ class LandingPage extends React.Component {
                             {this.state.selectedTeam && (
                               <div
                                 style={{
-                                  display: 'inline-table',
                                   marginBottom: '10px',
                                 }}>
+                                <TextInput
+                                  id="controlled-name"
+                                  labelText=""
+                                  value={this.state.selected_player}
+                                  onChange={e =>
+                                    this.setState({
+                                      ...this.state,
+                                      selected_player: e.target.value,
+                                    })
+                                  }
+                                />
                                 <NumberInput
                                   style={{ border: 'none' }}
-                                  helperText="Price"
+                                  helperText="Enter auction price."
                                   hideSteppers
                                   id="selection-value"
                                   value={this.state.current_price}
@@ -547,7 +562,7 @@ class LandingPage extends React.Component {
                                       current_price: e.target.value,
                                     })
                                   }
-                                  invalidText="Price is not valid"
+                                  invalidText="Price is not valid. IC cannot do math."
                                 />
                               </div>
                             )}
@@ -698,7 +713,7 @@ class LandingPage extends React.Component {
                     backwardText="Previous page"
                     forwardText="Next page"
                     pageSize={this.state.currenPageSize}
-                    pageSizes={[this.state.currentPageSize, 20, 30, 50]}
+                    pageSizes={[this.state.currentPageSize, 16, 24, 32]}
                     itemsPerPageText="Items per page"
                     onChange={({ page, pageSize }) => {
                       this.setState({
