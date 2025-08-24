@@ -773,22 +773,7 @@ class LandingPage extends React.Component {
                     {[...Array(3).keys()].map(item => (
                       <Column key={item} lg={3} md={8} sm={4}>
                         {this.state.league_data.league_entries
-                          .slice(
-                            item *
-                              Math.floor(
-                                this.state.league_data.league_entries.length < 3
-                                  ? 1
-                                  : this.state.league_data.league_entries
-                                      .length / 3
-                              ),
-                            (item + 1) *
-                              Math.floor(
-                                this.state.league_data.league_entries.length < 3
-                                  ? 1
-                                  : this.state.league_data.league_entries
-                                      .length / 3
-                              )
-                          )
+                          .filter((_, id) => (id - item) % 3 === 0)
                           .filter(item => item.entry_name)
                           .map((item, id) => (
                             <TeamTile
