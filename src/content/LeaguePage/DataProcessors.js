@@ -1,14 +1,10 @@
 import { CaretUp, CaretDown, Subtract } from '@carbon/icons-react';
 
-function monoMalinyo(id) {
-  return id === 343164 ? 10 : 0;
-}
-
 function getPointsArrayFromID(id, league_data) {
   var points_array = [
     {
       gameweek: 0,
-      points: monoMalinyo(id),
+      points: 0,
     },
   ];
 
@@ -63,6 +59,8 @@ function getPlayerNameFromID(id, league_data) {
 }
 
 function getCurrentGW(league_data) {
+
+  console.log(123, league_data)
   var cache = league_data.matches.findLast(match => match.started);
   return cache ? cache.event : 1;
 }

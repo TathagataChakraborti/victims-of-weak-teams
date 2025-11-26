@@ -55,6 +55,8 @@ class LeaguePage extends React.Component {
       })
         .then(res => res.json())
         .then(data => {
+
+          console.log(data)
           this.setState({
             ...this.state,
             league_data: data,
@@ -93,7 +95,7 @@ class LeaguePage extends React.Component {
                   <Leaderboard league_data={this.state.league_data} />
                   <br />
                   <br />
-
+{/* 
                   <ContentSwitcher
                     size="sm"
                     selectedIndex={this.state.trend_index}
@@ -121,6 +123,7 @@ class LeaguePage extends React.Component {
                       );
                     }
                   })}
+ */}
                   <br />
                   <br />
                 </>
