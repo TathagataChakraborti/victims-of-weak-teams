@@ -1,4 +1,3 @@
-import React from 'react';
 import { LINKS } from './Links';
 import { generateUrl } from '../../components/Info';
 

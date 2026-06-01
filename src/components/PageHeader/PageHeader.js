@@ -36,6 +36,10 @@ const route_map = [
     to: 'resources',
     map: 'Resources',
   },
+  {
+    to: 'about',
+    map: 'About',
+  },
 ];
 
 const PageHeader = props => (
