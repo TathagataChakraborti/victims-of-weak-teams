@@ -1,7 +1,6 @@
 import React from 'react';
 import GitHubButton from 'react-github-btn';
 
-import { LINKS } from './Links';
 import { AuctionInformationModal } from './InformationModal';
 import { TeamTile } from '../../components/BasicElements';
 import { PageHeader } from '../../components/PageHeader';
@@ -14,7 +13,6 @@ import {
   getPlayerPosition,
   getPlayerTeam,
   computeRemainingMoney,
-  generateUrl,
   isAuctionDone,
   generateLeagueAPI,
 } from '../../components/Info';
@@ -45,7 +43,6 @@ import {
   Dropdown,
   NumberInput,
   InlineNotification,
-  ClickableTile,
   FileUploaderDropContainer,
   FileUploaderItem,
   TextInput,
@@ -727,21 +724,6 @@ class AuctionPage extends React.Component {
                   <br />
                 </>
               )}
-
-              {LINKS.map((item, id) => (
-                <ClickableTile
-                  key={id}
-                  href={item.url}
-                  target="_blank"
-                  className="reference-tile">
-                  <img
-                    alt={item.name}
-                    src={generateUrl(
-                      'images/' + item.name.toLowerCase().replaceAll(' ', '-')
-                    )}
-                  />
-                </ClickableTile>
-              ))}
 
               <br />
               <br />

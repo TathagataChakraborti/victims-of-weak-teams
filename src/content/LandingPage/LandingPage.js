@@ -7,16 +7,6 @@ import {
 } from '../../components/BasicElements';
 
 import {
-  LicenseThirdPartyDraft,
-  Trophy,
-  ChartCombo,
-  CurrencyPound,
-  ArrowRight,
-} from '@carbon/icons-react';
-
-import { Title, P } from '@carbon-labs/mdx-components';
-
-import {
   Grid,
   Column,
   ContainedList,
@@ -25,6 +15,16 @@ import {
   ClickableTile,
   Tile,
 } from '@carbon/react';
+
+import { Title, P } from '@carbon-labs/mdx-components';
+
+import {
+  LicenseThirdPartyDraft,
+  Trophy,
+  ChartCombo,
+  CurrencyPound,
+  ArrowRight,
+} from '@carbon/icons-react';
 
 class LandingPage extends React.Component {
   constructor(props) {

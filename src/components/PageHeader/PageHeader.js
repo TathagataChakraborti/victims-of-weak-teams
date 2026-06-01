@@ -27,9 +27,10 @@ const PageHeader = props => (
           <HeaderName prefix="Victims of Weak Teams">Auction Portal</HeaderName>
 
           <HeaderNavigation aria-label="Navigation">
-            <HeaderMenuItem href="#">Home</HeaderMenuItem>
+            <HeaderMenuItem href="/">Home</HeaderMenuItem>
             <HeaderMenuItem href="/auction">Auction</HeaderMenuItem>
             <HeaderMenuItem href="/leaderboard">League</HeaderMenuItem>
+            <HeaderMenuItem href="/resources">Resources</HeaderMenuItem>
           </HeaderNavigation>
         </Header>
       </>
