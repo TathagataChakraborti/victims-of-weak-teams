@@ -59,8 +59,7 @@ function getPlayerNameFromID(id, league_data) {
 }
 
 function getCurrentGW(league_data) {
-
-  console.log(123, league_data)
+  console.log(123, league_data);
   var cache = league_data.matches.findLast(match => match.started);
   return cache ? cache.event : 1;
 }

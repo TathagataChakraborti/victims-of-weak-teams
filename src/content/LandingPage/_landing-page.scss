@@ -1,16 +1,29 @@
-html {
-  background-color: #161616;
+@use '@carbon/colors';
+
+.text-vowt {
+  color: colors.$blue-60;
 }
 
-.reference-tile {
-  display: contents;
-  padding: 0;
-  margin: 0;
+.game-highlights {
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
-.reference-tile > img {
-  border-radius: 5px;
-  margin-right: 20px;
-  width: auto;
-  height: 40px;
+.game-highlights svg {
+  fill: colors.$blue-60;
+}
+
+.square-tags {
+  border-radius: 0;
+}
+
+.numbers-tag {
+  justify-content: left;
+  width: 128px;
+}
+
+.transparent-info-tile {
+  background-color: rgba(0, 0, 0, 0.75);
+  color: colors.$gray-10;
+  margin-bottom: 32px;
 }

@@ -7,6 +7,8 @@ import {
   Header,
   HeaderName,
   HeaderContainer,
+  HeaderNavigation,
+  HeaderMenuItem,
   SkipToContent,
   SideNav,
   SideNavItems,
@@ -17,20 +19,22 @@ import {
 } from '@carbon/react';
 
 const PageHeader = props => (
-  <Theme theme="g90">
-    <HeaderContainer
-      render={({ isSideNavExpanded, onClickSideNavExpand }) => (
-        <>
-          <Header aria-label="Header">
-            <SkipToContent />
-            <HeaderName prefix="Victims of Weak Teams">
-              Auction Portal
-            </HeaderName>
-          </Header>
-        </>
-      )}
-    />
-  </Theme>
+  <HeaderContainer
+    render={({ isSideNavExpanded, onClickSideNavExpand }) => (
+      <>
+        <Header>
+          <SkipToContent />
+          <HeaderName prefix="Victims of Weak Teams">Auction Portal</HeaderName>
+
+          <HeaderNavigation aria-label="Navigation">
+            <HeaderMenuItem href="#">Home</HeaderMenuItem>
+            <HeaderMenuItem href="/auction">Auction</HeaderMenuItem>
+            <HeaderMenuItem href="/leaderboard">League</HeaderMenuItem>
+          </HeaderNavigation>
+        </Header>
+      </>
+    )}
+  />
 );
 
 class PageHeaderExtended extends React.Component {

@@ -30,7 +30,7 @@ const leaderboardHeaders = [
 ];
 
 const Leaderboard = props => {
-  console.log(55, props)
+  console.log(55, props);
 
   var rows = !props.league_data
     ? []

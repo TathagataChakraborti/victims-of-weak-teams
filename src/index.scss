@@ -1,4 +1,7 @@
 @use '@carbon/react';
+@use '@carbon/colors';
+
+@use '@carbon-labs/mdx-components/scss';
 @use '@carbon/react/scss/breakpoint' as *;
 
 /// Remove overrides once Carbon bugs are fixed upstream.
