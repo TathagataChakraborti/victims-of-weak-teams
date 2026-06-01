@@ -29,6 +29,8 @@ const ResourcePage = _ => {
             </Column>
           ))}
         </CardGroup>
+        <br />
+        <br />
       </Column>
     </Grid>
   );

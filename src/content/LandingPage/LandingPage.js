@@ -1,10 +1,7 @@
 import React from 'react';
 import GitHubButton from 'react-github-btn';
 
-import {
-  BuyMeACoffeeWidget,
-  BuyMeACoffeeButton,
-} from '../../components/BasicElements';
+import { BuyMeACoffeeButton } from '../../components/BasicElements';
 
 import {
   Grid,
@@ -111,6 +108,9 @@ class LandingPage extends React.Component {
                 If you have already saved your auction, head over to your
                 personalized league dashboard here.
               </ClickableTile>
+
+              <br />
+              <br />
             </Column>
           </Grid>
         </Column>
@@ -153,12 +153,9 @@ class LandingPage extends React.Component {
                   The interface is provided for free. If you like it, consider
                   buying me a coffee! Your love keeps us going. &#129303;
                 </span>
-
                 <br />
                 <br />
-
                 <BuyMeACoffeeButton />
-                <BuyMeACoffeeWidget />
               </Tile>
             </Column>
           </Grid>

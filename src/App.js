@@ -11,12 +11,14 @@ import LeaguePage from './content/LeaguePage';
 import ResourcePage from './content/ResourcePage';
 
 import { Grid, Column } from '@carbon/react';
+import { BuyMeACoffeeWidget } from './components/BasicElements';
 
 class App extends Component {
   render() {
     return (
       <Content>
         <PageHeader />
+        <BuyMeACoffeeWidget />
         <Grid>
           <Column lg={14} md={8} sm={4}>
             <Switch>

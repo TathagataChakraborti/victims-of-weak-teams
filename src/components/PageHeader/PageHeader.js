@@ -5,6 +5,7 @@ import { OUTLINE, isHome, transformRouteString, createRoute } from './Outline';
 import {
   Theme,
   Header,
+  HeaderMenuButton,
   HeaderName,
   HeaderContainer,
   HeaderNavigation,
@@ -18,20 +19,58 @@ import {
   Link,
 } from '@carbon/react';
 
+const route_map = [
+  {
+    to: '',
+    map: 'Home',
+  },
+  {
+    to: 'auction',
+    map: 'Auction',
+  },
+  {
+    to: 'leaderboard',
+    map: 'League',
+  },
+  {
+    to: 'resources',
+    map: 'Resources',
+  },
+];
+
 const PageHeader = props => (
   <HeaderContainer
     render={({ isSideNavExpanded, onClickSideNavExpand }) => (
       <>
         <Header>
           <SkipToContent />
+          <HeaderMenuButton
+            onClick={onClickSideNavExpand}
+            isActive={isSideNavExpanded}
+            aria-label="Header Area"
+          />
+
           <HeaderName prefix="Victims of Weak Teams">Auction Portal</HeaderName>
 
           <HeaderNavigation aria-label="Navigation">
-            <HeaderMenuItem href="/">Home</HeaderMenuItem>
-            <HeaderMenuItem href="/auction">Auction</HeaderMenuItem>
-            <HeaderMenuItem href="/leaderboard">League</HeaderMenuItem>
-            <HeaderMenuItem href="/resources">Resources</HeaderMenuItem>
+            {route_map.map((item, id) => (
+              <HeaderMenuItem key={id} href={'/' + item.to}>
+                {item.map}
+              </HeaderMenuItem>
+            ))}
           </HeaderNavigation>
+
+          {isSideNavExpanded && (
+            <SideNav aria-label="Navigation" expanded={isSideNavExpanded}>
+              <SideNavItems>
+                {route_map.map((item, id) => (
+                  <SideNavLink key={id} href={'/' + item.to} large={true}>
+                    {item.map}
+                  </SideNavLink>
+                ))}
+              </SideNavItems>
+            </SideNav>
+          )}
         </Header>
       </>
     )}
